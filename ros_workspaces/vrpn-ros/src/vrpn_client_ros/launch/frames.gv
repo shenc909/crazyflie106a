@@ -1,0 +1,8 @@
+digraph G {
+"world" -> "crazyflie"[label="Broadcaster: /vrpn_client_node\nAverage rate: 119.042 Hz\nMost recent transform: 1549436359.982 ( 0.007 sec old)\nBuffer length: 4.990 sec\n"];
+"crazyflie" -> "crazyflie/base_link"[label="Broadcaster: /baselink_broadcaster\nAverage rate: 10.195 Hz\nMost recent transform: 1549436360.025 ( -0.036 sec old)\nBuffer length: 4.905 sec\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1549436359.989"[ shape=plaintext ] ;
+ }->"world";
+}
