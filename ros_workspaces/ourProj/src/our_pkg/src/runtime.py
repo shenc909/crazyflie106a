@@ -51,9 +51,5 @@ def main():
         
         r.sleep()
 
-<<<<<<< HEAD
-    
-=======
 if __name__ == '__main__':
     main()
->>>>>>> ececa5d17d9d2e2e9cf66bd4fe2df945ad7f55f8
