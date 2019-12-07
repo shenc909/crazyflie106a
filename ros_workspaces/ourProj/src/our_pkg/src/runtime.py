@@ -5,6 +5,8 @@ import rospy
 
 if __name__ == '__main__':
 
+    rospy.init_node('runtime', anonymous=True)
+
 	# Create obstacle
 
 	try:

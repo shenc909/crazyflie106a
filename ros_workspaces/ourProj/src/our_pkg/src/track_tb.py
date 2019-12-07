@@ -45,8 +45,10 @@ class TrackTurtlebot(object):
             tb_grid = occupancy_grid.getGrid(tb_pos) # tb grid number [x y] from occupancy_grid
             shortest_dist = 0
             shortest_idx = 9
-            flying_height = 2
+            flying_height = 1.5
+            landing_height = 1.2
             tb_height = 0.5
+            offset = [0.1, -0.15]
 
             movement = [[-1 1],[0 1], [1 1], [1 0], [1 -1], [0 -1], [-1 -1], [-1 0]]
             next_step = tb_grid + movement #[x y] next position
@@ -70,9 +72,10 @@ class TrackTurtlebot(object):
                 y_dist = cf_pos[1] - tf_pos[1]
                 dist = math.sqrt(math.pow(x_dist, 2) + math.pow(y_dist, 2))
                 if (dist > 0.01):
-                    self._ref_pub.publish([tb_pos flying_height 0 0 0])
+                    self._ref_pub.publish([tb_pos+offset flying_height 0 0 0])
                 else:
                     # Land
+                    self._ref_pub.publish([tb_pos+offset landing_height 0 0 0])
                     rospy.wait_for_service('landing')
                     landing = rospy.ServiceProxy('/land', Empty)
                     landing()
