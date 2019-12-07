@@ -39,7 +39,7 @@ if __name__ == '__main__':
         except rospy.ROSInterruptException:
             rospy.loginfo("")
 
-        if (track_flag = True):
+        if (track_flag == True):
             break
         
         r.sleep()
