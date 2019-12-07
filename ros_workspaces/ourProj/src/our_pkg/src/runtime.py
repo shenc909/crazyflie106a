@@ -9,7 +9,7 @@ import rospy
 obstacle_manager = ObstacleManager()
 
 def handle_create_request(req):
-    params = [req._id, req.x_pos, req.y_pos, req.x_length, req.y_length, req.z_height]
+    params = [req.id_, req.x_pos, req.y_pos, req.x_length, req.y_length, req.z_height]
     obstacle_manager.createObstacle(params)
     return "done"
 

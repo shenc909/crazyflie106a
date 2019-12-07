@@ -38,16 +38,16 @@ class OccupancyGrid(object):
 
         # Dimensions and bounds.
         # TODO! You'll need to set values for class variables called:
-        self._x_num = rospy.get_param("~x_num")
-        self._x_min = rospy.get_param("~x_min")
-        self._x_max = rospy.get_param("~x_max")
+        self._x_num = rospy.get_param("~x/num")
+        self._x_min = rospy.get_param("~x/min")
+        self._x_max = rospy.get_param("~x/max")
         self._x_res = (self._x_max - self._x_min)/self._x_num# The resolution in x. Note: This isn't a ROS parameter. What will you do instead?
-        self._y_num = rospy.get_param("~y_num")
-        self._y_min = rospy.get_param("~y_min")
-        self._y_max = rospy.get_param("~y_max")
+        self._y_num = rospy.get_param("~y/num")
+        self._y_min = rospy.get_param("~y/min")
+        self._y_max = rospy.get_param("~y/max")
         self._y_res = (self._y_max - self._y_min)/self._y_num # The resolution in y. Note: This isn't a ROS parameter. What will you do instead?
-        self._fixed_frame = rospy.get_param("~fixed_frame")
-        self._vis_topic = rospy.get_param("~vis_topic")
+        self._fixed_frame = rospy.get_param("~frames/fixed")
+        self._vis_topic = rospy.get_param("~topics/vis")
 
         return True
 
