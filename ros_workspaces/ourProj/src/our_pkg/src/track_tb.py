@@ -32,6 +32,8 @@ class TrackTurtlebot(object):
 
     def Track(self,occupancy_grid):
 
+        track_flag = False
+
         while not rospy.is_shutdown():
             cf_tf_pos = self._tf_buffer.lookup_transform('cf', 'World', rospy.Time())
             tb_tf_pos = self._tf_buffer.lookup_transform('tb', 'World', rospy.Time())
@@ -50,7 +52,7 @@ class TrackTurtlebot(object):
             next_step = tb_grid + movement #[x y] next position
             next_step_name = ["front_left", "front","front_right","right","back_right","back","back_left","left"]
 
-            while (cf_grid) != (tb_grid):
+            if (cf_grid) != (tb_grid):
                 for x in range(8):
                     if !(occupied_grid[next_step[x]]): # if not occupied
                         grid_distance[x] = np.linalg.norm([tb_grid - next_step[x]])
@@ -63,8 +65,18 @@ class TrackTurtlebot(object):
                 print ("Going to adjacent " next_step_name[shortest_idx] " grid")
                 self._ref_pub.publish([next_step[shortest_idx]+cf_pos flying_height 0 0 0])
 
-            while (cf_grid) == (tb_grid):
-                self._ref_pub.publish([tb_pos flying_height 0 0 0])
+            if (cf_grid) == (tb_grid):
+                x_dist = cf_pos[0] - tf_pos[0]
+                y_dist = cf_pos[1] - tf_pos[1]
+                dist = math.sqrt(math.pow(x_dist, 2) + math.pow(y_dist, 2))
+                if (dist > 0.01):
+                    self._ref_pub.publish([tb_pos flying_height 0 0 0])
+                else:
+                    # Land
+                    rospy.wait_for_service('landing')
+                    landing = rospy.ServiceProxy('/land', Empty)
+                    landing()
+                    track_flag = True
 
         cf_tf_pos = self._tf_buffer.lookup_transform('cf', 'World', rospy.Time()) #full position
         tb_tf_pos = self._tf_buffer.lookup_transform('tb', 'World', rospy.Time()) #full position
@@ -72,7 +84,9 @@ class TrackTurtlebot(object):
         cf_pos = [cf_tf_pos[0] cf_tf_pos[1]] # cf [x y] position from motive
         tb_pos = [tb_tf_pos[0] tb_tf_pos[1]] # tb [x y] position from motive
 
-        return (np.linalg.norm([cf_pos-tb_pos])
+        # return (np.linalg.norm([cf_pos-tb_pos])
+
+        return track_flag
 
 
     def RegisterCallbacks(self):
