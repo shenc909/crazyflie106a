@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from obstacle_creation import Obstacle, ObstacleManager
 from track_tb import TrackTurtlebot
 from occupancy_grid import OccupancyGrid
@@ -17,11 +18,13 @@ def main():
 
 	try:
 		s = rospy.Service('create_obstacle', obstacle_create_srv, handle_create_request)
+        rospy.init_node('runtime', anonymous=True)
 
-	except rospy.ROSInterruptException:
-		rospy.loginfo("")
 
-	# Build occupancy grid
+    except rospy.ROSInterruptException:
+	    rospy.loginfo("")
+
+    # Build occupancy grid
 
     r = rospy.Rate(10)
 
@@ -43,7 +46,7 @@ def main():
         except rospy.ROSInterruptException:
             rospy.loginfo("")
 
-        if (track_flag = True):
+        if (track_flag == True):
             break
         
         r.sleep()
