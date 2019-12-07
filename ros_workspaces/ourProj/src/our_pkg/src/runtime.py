@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from obstacle_creation import Obstacle, ObstacleManager
 from track_tb import TrackTurtlebot
 from occupancy_grid import OccupancyGrid
@@ -9,14 +10,14 @@ if __name__ == '__main__':
 
 	# Create obstacle
 
-	try:
-		obstacle_manager = ObstacleManager()
-		obstacle_manager.createObstacle()
+    try:
+	    obstacle_manager = ObstacleManager()
+	    obstacle_manager.createObstacle()
 
-	except rospy.ROSInterruptException:
-		rospy.loginfo("")
+    except rospy.ROSInterruptException:
+	    rospy.loginfo("")
 
-	# Build occupancy grid
+    # Build occupancy grid
 
     r = rospy.Rate(10)
 
