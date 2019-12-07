@@ -40,8 +40,8 @@ class TrackTurtlebot(object):
             tb_tf_pos = self._tf_buffer.lookup_transform('tb', 'World', rospy.Time())
 
             occupied_grid = occupancy_grid.getOccupancy() #occupied = 1, not occupied = 0
-            cf_pos = [cf_tf_pos[0] cf_tf_pos[1]] # cf [x y] position from motive
-            tb_pos = [tb_tf_pos[0] tb_tf_pos[1]] # tb [x y] position from motive
+            cf_pos = [cf_tf_pos[0], cf_tf_pos[1]] # cf [x y] position from motive
+            tb_pos = [tb_tf_pos[0], tb_tf_pos[1]] # tb [x y] position from motive
             cf_grid = occupancy_grid.getGrid(cf_pos) # cf grid number [x y] from occupancy_grid
             tb_grid = occupancy_grid.getGrid(tb_pos) # tb grid number [x y] from occupancy_grid
             shortest_dist = 0
