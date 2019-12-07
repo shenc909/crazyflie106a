@@ -90,7 +90,7 @@ class TrackTurtlebot(object):
                     self._ref_pub.publish(nextpos)
 
                     rospy.wait_for_service('landing')
-                    landing = rospy.ServiceProxy('/land', Empty)
+                    landing = rospy.ServiceProxy('/land', Land)
                     landing()
                     track_flag = True
 
