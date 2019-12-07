@@ -7,16 +7,16 @@ if __name__ == '__main__':
 
     rospy.init_node('runtime', anonymous=True)
 
-	# Create obstacle
+    # Create obstacle
 
-	try:
-		obstacle_manager = ObstacleManager()
-		obstacle_manager.createObstacle()
+    try:
+        obstacle_manager = ObstacleManager()
+        obstacle_manager.createObstacle()
 
-	except rospy.ROSInterruptException:
-		rospy.loginfo("")
+    except rospy.ROSInterruptException:
+        rospy.loginfo("")
 
-	# Build occupancy grid
+    # Build occupancy grid
 
     r = rospy.Rate(10)
 
@@ -43,4 +43,4 @@ if __name__ == '__main__':
         
         r.sleep()
 
-	
+    
