@@ -14,15 +14,15 @@ def handle_create_request(req):
     return "done"
 
 def main():
-	# Instantiate obstacle manager
+    # Instantiate obstacle manager
 
-	try:
-		s = rospy.Service('create_obstacle', obstacle_create_srv, handle_create_request)
+    try:
+        s = rospy.Service('create_obstacle', obstacle_create_srv, handle_create_request)
         rospy.init_node('runtime', anonymous=True)
 
 
     except rospy.ROSInterruptException:
-	    rospy.loginfo("")
+        rospy.loginfo("")
 
     # Build occupancy grid
 
