@@ -1,20 +1,28 @@
+#!/usr/bin/env python
 from obstacle_creation import Obstacle, ObstacleManager
 from track_tb import TrackTurtlebot
 from occupancy_grid import OccupancyGrid
+from our_pkg.srv import obstacle_create_srv
 import rospy
 
-if __name__ == '__main__':
 
-    rospy.init_node('runtime', anonymous=True)
+obstacle_manager = ObstacleManager()
 
-    # Create obstacle
+def handle_create_request(req):
+    params = [req._id, req.x_pos, req.y_pos, req.x_length, req.y_length, req.z_height]
+    obstacle_manager.createObstacle(params)
+    return "done"
 
-    try:
-        obstacle_manager = ObstacleManager()
-        obstacle_manager.createObstacle()
+def main():
+	# Instantiate obstacle manager
+
+	try:
+		s = rospy.Service('create_obstacle', obstacle_create_srv, handle_create_request)
+        rospy.init_node('runtime', anonymous=True)
+
 
     except rospy.ROSInterruptException:
-        rospy.loginfo("")
+	    rospy.loginfo("")
 
     # Build occupancy grid
 
@@ -38,9 +46,14 @@ if __name__ == '__main__':
         except rospy.ROSInterruptException:
             rospy.loginfo("")
 
-        if (track_flag = True):
+        if (track_flag == True):
             break
         
         r.sleep()
 
+<<<<<<< HEAD
     
+=======
+if __name__ == '__main__':
+    main()
+>>>>>>> ececa5d17d9d2e2e9cf66bd4fe2df945ad7f55f8
