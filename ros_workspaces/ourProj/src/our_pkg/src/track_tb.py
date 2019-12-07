@@ -20,9 +20,9 @@ class TrackTurtlebot(object):
         self._name = rospy.get_name() + "/track_turtlebot"
 
         # Load parameters.
-        if not self.LoadParameters():
-            rospy.logerr("%s: Error loading parameters.", self._name)
-            return False
+        #if not self.LoadParameters():
+         #   rospy.logerr("%s: Error loading parameters.", self._name)
+         #   return False
 
         # Register callbacks.
         if not self.RegisterCallbacks():
@@ -55,6 +55,7 @@ class TrackTurtlebot(object):
             next_step = tb_grid + movement #[x y] next position
             next_step_name = ["front_left", "front","front_right","right","back_right","back","back_left","left"]
 
+            grid_distance = np.zeros(8)
             if (cf_grid) != (tb_grid):
                 for x in range(8):
                     if (occupied_grid[next_step[x]]) == 0: # if not occupied
@@ -73,9 +74,8 @@ class TrackTurtlebot(object):
                 self._ref_pub.publish(nextpos)
 
             if (cf_grid) == (tb_grid):
-                x_dist = cf_pos[0] - tf_pos[0]
-                y_dist = cf_pos[1] - tf_pos[1]
-                dist = math.sqrt(math.pow(x_dist, 2) + math.pow(y_dist, 2))
+                dist = np.linalg.norm([cf_pos[0]-tb_pos[0],cf_pos[1]-tb_pos[1]])
+                #math.sqrt(math.pow(x_dist, 2) + math.pow(y_dist, 2))
                 if (dist > 0.01):
                     nextpos = PositionVelocityStateStamped()
                     nextpos.header =  rospy.Time.now
