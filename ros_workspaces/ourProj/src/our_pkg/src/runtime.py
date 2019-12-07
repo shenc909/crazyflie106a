@@ -28,19 +28,23 @@ def main():
 
     r = rospy.Rate(10)
 
+    occupancy_grid = OccupancyGrid()
+    occupancy_grid.Initialize()
+
+    turtlebot_tracker = TrackTurtlebot()
+    turtlebot_tracker.Initialize()
+
     while not rospy.is_shutdown():
 
         try:
-            occupancy_grid = OccupancyGrid(obstacle_manager.getObstacles())
-            occupancy_grid.Initialize()
+            occupancy_grid.Update(obstacle_manager.getObstacles())
 
         except rospy.ROSInterruptException:
             rospy.loginfo("")
 
         # Track turtlebot
         try:
-            turtlebot_tracker = TrackTurtlebot()
-            turtlebot_tracker.Initialize()
+            
             track_flag = turtlebot_tracker.Track(occupancy_grid.getOccupancy())
 
         except rospy.ROSInterruptException:

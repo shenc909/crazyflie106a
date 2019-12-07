@@ -35,10 +35,6 @@ class OccupancyGrid(object):
         return True
 
     def LoadParameters(self):
-        # Random downsampling fraction, i.e. only keep this fraction of rays.
-        if not rospy.has_param("~random_downsample"):
-            return False
-        self._random_downsample = rospy.get_param("~random_downsample")
 
         # Dimensions and bounds.
         # TODO! You'll need to set values for class variables called:
