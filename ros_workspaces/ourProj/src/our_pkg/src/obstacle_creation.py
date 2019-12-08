@@ -31,6 +31,17 @@ class ObstacleManager:
 	def __init__(self):
 		self._obstacles = {}
 
+	def show_obstacle_in_rviz(marker_publisher, params):
+		marker = Marker(
+					type=Marker.CUBE,
+					id=0,
+					lifetime=0,
+					pose=Pose(Point(params[1], params[2], 0), Quaternion(0, 0, 0, 0)),
+					scale=Vector3(params[3], params[4], params[5]),
+					header=Header(frame_id='base_link'),
+					color=ColorRGBA(0.0, 1.0, 0.0, 0.8))
+		marker_publisher.publish(marker)
+
 	def createObstacle(self, params):
 		_id = params[0]
 		if _id in self._obstacles:
@@ -55,6 +66,12 @@ class ObstacleManager:
 			if _id in self._obstacles:
 				del self._obstacles[_id]
 			print("Failed to create obstacle")
+
+		# Display in RViz
+		marker_publisher = rospy.Publisher('visualization_marker', Marker, queue_size=10)
+		rospy.sleep(0.5)                                                             
+		show_obstacle_in_rviz(marker_publisher, params)
+
 
 	def deleteObstacle(self, param):
 		confirm = input("Confirm delete obstacle %s? (Y/N): " % (param[0]))
