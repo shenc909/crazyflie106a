@@ -77,12 +77,20 @@ class OccupancyGrid(object):
     # Colormap to take log odds at a voxel to a RGBA color.
     def Colormap(self, ii, jj):
         p = self._map[ii, jj]
-
         c = ColorRGBA()
-        c.r = p
-        c.g = 0.1
-        c.b = 1.0 - p
-        c.a = 0.75
+        if p == 2:
+            c.r = 0.1
+            c.g = 1.0
+            c.b = 0.1
+        elif p == 3:
+            c.r = 1.0
+            c.g = 1.0
+            c.b = 0.1
+        else:
+            c.r = p
+            c.g = 0.1
+            c.b = 1.0 - p
+            c.a = 0.75
         return c
 
     # Visualize the map as a collection of flat cubes instead of
@@ -117,10 +125,10 @@ class OccupancyGrid(object):
 
         for i in range(len(self._objectmap)):
             obj = self._objectmap[i]
-            gridXmin = int(obj.getXmin()-self._x_min/self._x_res)
-            gridXmax = int(obj.getXmax()-self._x_min/self._x_res)
-            gridYmin = int(obj.getYmin()-self._y_min/self._y_res)
-            gridYmax = int(obj.getYmax()-self._y_min/self._y_res)
+            gridXmin = int((obj.getXmin()-self._x_min)/self._x_res)
+            gridXmax = int((obj.getXmax()-self._x_min)/self._x_res)
+            gridYmin = int((obj.getYmin()-self._y_min)/self._y_res)
+            gridYmax = int((obj.getYmax()-self._y_min)/self._y_res)
 
             for x in range(gridXmin, gridXmax+1):
                 for y in range(gridYmin, gridYmax+1):
@@ -139,3 +147,7 @@ class OccupancyGrid(object):
         xpos = grid[0] * self._x_res + self._x_res/2 + self._x_min
         ypos = grid[1] * self._y_res + self._y_res/2 + self._y_min
         return np.array([xpos, ypos])
+
+    def enterPos(self, coordtb, coordcf):
+        self._map[self.getGrid(coordtb)] = 2
+        self._map[self.getGrid(coordcf)] = 3

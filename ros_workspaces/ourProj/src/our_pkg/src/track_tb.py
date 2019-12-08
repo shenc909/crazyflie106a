@@ -48,6 +48,7 @@ class TrackTurtlebot(object):
             occupied_grid = occupancy_grid.getOccupancy() #occupied = 1, not occupied = 0
             cf_pos = [cf_tf_pos.transform.translation.x, cf_tf_pos.transform.translation.y] # cf [x y] position from motive
             tb_pos = [tb_tf_pos.transform.translation.x, tb_tf_pos.transform.translation.y] # tb [x y] position from motive
+            occupancy_grid.enterPos(tb_pos, cf_pos)
             cf_grid = occupancy_grid.getGrid(cf_pos) # cf grid number [x y] from occupancy_grid
             tb_grid = occupancy_grid.getGrid(tb_pos) # tb grid number [x y] from occupancy_grid
             shortest_dist = 1000
