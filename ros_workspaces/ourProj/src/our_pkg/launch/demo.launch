@@ -1,6 +1,141 @@
 <launch>
+
+  <!-- Crazyflie address. -->
+
+  <arg name="uri0" value="radio://0/80/2M/E7E7E7E7E7" />
+
+  <arg name="uri" default="$(arg uri0)" />
+
+  <!-- Topics. -->
+  <arg name="reference_topic" default="/ref"/>
+  <arg name="state_topic" default="/state"/>
+  <arg name="lqr_control_topic" default="/control/lqr"/>
+  <arg name="takeoff_control_topic" default="/control/takeoff" />
+  <arg name="final_control_topic" default="/control/final" />
+  <arg name="in_flight_topic" default="/in_flight" />
+
   <!-- Frames of reference. -->
+  <arg name="robot_frame" default="cf" />
   <arg name="fixed_frame" default="world" />
+
+  <!-- Takeoff hover point. -->
+  <arg name="takeoff_hover_x" default="0.0" />
+  <arg name="takeoff_hover_y" default="0.0" />
+  <arg name="takeoff_hover_z" default="1.2" />
+
+  <!-- Start point for the simulator. -->
+  <arg name="sim_init_x" default="0.0" />
+  <arg name="sim_init_y" default="0.0" />
+  <arg name="sim_init_z" default="0.0" />
+
+  <!-- Control parameters. -->
+  <arg name="K_file" default="$(find crazyflie_lqr)/references/K_manual.txt"/>
+  <arg name="u_ref_file" default="$(find crazyflie_lqr)/references/u_ref_hover.txt"/>
+
+  <!-- Time steps. -->
+  <arg name="simulator_dt" default="0.001" />
+  <arg name="estimator_dt" default="0.01" />
+
+  <!-- Dimensions. -->
+  <arg name="x_dim" default="7" />
+  <arg name="u_dim" default="4" />
+
+
+  <!-- TF static publisher to create a base_link frame for the crazyflie. -->
+  <node pkg="tf"
+        type="static_transform_publisher"
+        name="robot_base_link_publisher"
+        args="0 0 0 0 0 0 1 $(arg robot_frame) $(arg robot_frame)/base_link 100">
+  </node>
+
+
+  <!-- Crazyflie interface. -->
+  <include file="$(find crazyflie_driver)/launch/crazyflie_server.launch" />
+
+  <group ns="crazyflie">
+    <include file="$(find crazyflie_driver)/launch/crazyflie_add.launch">
+      <arg name="uri" value="$(arg uri)" />
+      <arg name="tf_prefix" value="$(arg robot_frame)" />
+      <arg name="enable_logging" value="True" />
+    </include>
+
+  </group>
+
+  <!-- Takeoff server node. -->
+  <node name="takeoff_server"
+        pkg="crazyflie_takeoff"
+        type="takeoff_server_node"
+        output="screen">
+
+    <param name="topics/reference" value="$(arg reference_topic)" />
+    <param name="topics/control" value="$(arg takeoff_control_topic)" />
+    <param name="topics/in_flight" value="$(arg in_flight_topic)" />
+
+    <param name="hover/x" value="$(arg takeoff_hover_x)" />
+    <param name="hover/y" value="$(arg takeoff_hover_y)" />
+    <param name="hover/z" value="$(arg takeoff_hover_z)" />
+  </node>
+
+  <!-- Takeoff server node. -->
+  <node name="takeoff_control_filter"
+        pkg="crazyflie_takeoff"
+        type="takeoff_control_filter_node"
+        output="screen">
+
+    <param name="topics/takeoff_control" value="$(arg takeoff_control_topic)" />
+    <param name="topics/commanded_control" value="$(arg lqr_control_topic)" />
+    <param name="topics/final_control" value="$(arg final_control_topic)" />
+    <param name="topics/in_flight" value="$(arg in_flight_topic)" />
+
+    <param name="hover/x" value="$(arg takeoff_hover_x)" />
+    <param name="hover/y" value="$(arg takeoff_hover_y)" />
+    <param name="hover/z" value="$(arg takeoff_hover_z)" />
+  </node>
+
+  <!-- Converter for custom command velocity messages. -->
+  <node name="cmd_vel_converter"
+        pkg="crazyflie_control_merger"
+        type="cmd_vel_converter_node"
+        output="screen">
+
+    <param name="topics/control" value="$(arg final_control_topic)" />
+    <param name="topics/cmd_vel" value="/$(arg robot_frame)/cmd_vel" />
+  </node>
+
+  <!-- State estimator. -->
+  <node name="state_estimator"
+        pkg="crazyflie_state_estimator"
+        type="position_velocity_yaw_state_estimator_node"
+        output="screen">
+
+    <param name="x_dim" value="$(arg x_dim)" />
+    <param name="time_step" value="$(arg estimator_dt)" />
+
+    <param name="frames/fixed" value="$(arg fixed_frame)" />
+    <param name="frames/robot" value="$(arg robot_frame)" />
+
+    <param name="topics/state" value="$(arg state_topic)" />
+  </node>
+
+  <!-- LQR controller. -->
+  <node name="lqr_controller"
+        pkg="crazyflie_lqr"
+        type="position_velocity_yaw_state_lift_lqr_node"
+        output="screen">
+
+    <param name="x_dim" value="$(arg x_dim)" />
+    <param name="u_dim" value="$(arg u_dim)" />
+
+    <param name="K_file" value="$(arg K_file)" />
+    <param name="u_ref_file" value="$(arg u_ref_file)" />
+
+    <param name="topics/reference" value="$(arg reference_topic)" />
+    <param name="topics/state" value="$(arg state_topic)" />
+    <param name="topics/control" value="$(arg lqr_control_topic)" />
+    <param name="topics/in_flight" value="$(arg in_flight_topic)" />
+  </node>
+
+  <!-- Frames of reference. -->
   <arg name="sensor_frame" default="base_link" />
 
   <!-- Topics. -->

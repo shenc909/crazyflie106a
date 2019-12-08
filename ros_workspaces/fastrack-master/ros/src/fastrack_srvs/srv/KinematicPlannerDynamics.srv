@@ -1,4 +1,0 @@
----
-# Vector of doubles for max/min speed in each dimension of configuration space.
-float64[] max_speed
-float64[] min_speed
