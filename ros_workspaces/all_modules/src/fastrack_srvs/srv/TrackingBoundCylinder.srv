@@ -1,6 +1,0 @@
----
-# Maximum tracking error radius in x/y (m).
-float64 r
-
-# Maximum tracking error in z (m).
-float64 z

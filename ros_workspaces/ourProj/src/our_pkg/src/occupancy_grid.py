@@ -13,7 +13,8 @@ import numpy as np
 class OccupancyGrid(object):
     def __init__(self):
         self._intialized = False
-
+        self._coordcf = [0,0]
+        self._coordtb = [0,0]
     # Initialization and loading parameters.
     def Initialize(self):
         self._name = rospy.get_name() + "/grid_map_2d"
@@ -82,10 +83,12 @@ class OccupancyGrid(object):
             c.r = 0.1
             c.g = 1.0
             c.b = 0.1
+            c.a = 0.75
         elif p == 3:
             c.r = 1.0
             c.g = 1.0
             c.b = 0.1
+            c.a = 0.75
         else:
             c.r = p
             c.g = 0.1
@@ -133,6 +136,9 @@ class OccupancyGrid(object):
             for x in range(gridXmin, gridXmax+1):
                 for y in range(gridYmin, gridYmax+1):
                     self._map[x][y] = 1
+        
+        self._map[self.getGrid(self._coordtb)[0]][self.getGrid(self._coordtb)[1]] = 2
+        self._map[self.getGrid(self._coordcf)[0]][self.getGrid(self._coordcf)[1]] = 3
 
         
     def getOccupancy(self):
@@ -149,5 +155,5 @@ class OccupancyGrid(object):
         return np.array([xpos, ypos])
 
     def enterPos(self, coordtb, coordcf):
-        self._map[self.getGrid(coordtb)] = 2
-        self._map[self.getGrid(coordcf)] = 3
+        self._coordtb = coordtb
+        self._coordcf = coordcf

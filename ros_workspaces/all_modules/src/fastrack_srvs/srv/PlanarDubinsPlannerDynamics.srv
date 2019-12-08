@@ -1,4 +1,0 @@
----
-# Speed and max yaw rate.
-float64 speed
-float64 max_yaw_rate

@@ -4,6 +4,8 @@ from track_tb import TrackTurtlebot
 from occupancy_grid import OccupancyGrid
 from our_pkg.srv import obstacle_create_srv
 import rospy
+import subprocess
+import time
 
 
 obstacle_manager = ObstacleManager()
@@ -34,6 +36,12 @@ def main():
     turtlebot_tracker = TrackTurtlebot()
     turtlebot_tracker.Initialize()
     track_flag = False
+
+    mydata = raw_input("Press any key to start: ")
+    rospy.wait_for_service('/takeoff')
+    subprocess.call(["rosservice", "call","/takeoff"])
+    time.sleep(5)
+    
     while not rospy.is_shutdown():
 
         try:
