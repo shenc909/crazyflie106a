@@ -117,10 +117,10 @@ class OccupancyGrid(object):
 
         for i in range(len(self._objectmap)):
             obj = self._objectmap[i]
-            gridXmin = obj.getXmin()//self._x_res
-            gridXmax = obj.getXmax()//self._x_res
-            gridYmin = obj.getYmin()//self._y_res
-            gridYmax = obj.getYmax()//self._y_res
+            gridXmin = int(obj.getXmin()-self._x_min/self._x_res)
+            gridXmax = int(obj.getXmax()-self._x_min/self._x_res)
+            gridYmin = int(obj.getYmin()-self._y_min/self._y_res)
+            gridYmax = int(obj.getYmax()-self._y_min/self._y_res)
 
             for x in range(gridXmin, gridXmax+1):
                 for y in range(gridYmin, gridYmax+1):
@@ -131,7 +131,11 @@ class OccupancyGrid(object):
         return self._map
 
     def getGrid(self,pos):
-        xgrid = pos[0]//self._x_res
-        ygrid = pos[1]//self._y_res
-
+        xgrid = int((pos[0] - self._x_min)/self._x_res)
+        ygrid = int((pos[1] - self._y_min)/self._y_res)
         return np.array([xgrid, ygrid])
+    
+    def gridToPoint(self, grid):
+        xpos = grid[0] * self._x_res + self._x_res/2 + self._x_min
+        ypos = grid[1] * self._y_res + self._y_res/2 + self._y_min
+        return np.array([xpos, ypos])
