@@ -37,7 +37,7 @@ class TrackTurtlebot(object):
 
         return True
 
-    def Track(self,occupancy_grid):
+    def Track(self,occupancy_grid, obstacle_manager):
 
         track_flag = False
 
@@ -118,6 +118,8 @@ class TrackTurtlebot(object):
 
                 else:
                     # Land
+                    occupancy_grid.Update(obstacle_manager.getObstacles())
+                    occupancy_grid.Visualize()
                     rospy.loginfo("landing")
                     nextpos = PositionVelocityStateStamped()
                     h = std_msgs.msg.Header()

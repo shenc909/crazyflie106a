@@ -89,6 +89,11 @@ class OccupancyGrid(object):
             c.g = 1.0
             c.b = 0.1
             c.a = 0.75
+        elif p == 4:
+            c.r = 1.0
+            c.g = 1.0
+            c.b = 1.0
+            c.a = 1.0
         else:
             c.r = p
             c.g = 0.1
@@ -139,6 +144,8 @@ class OccupancyGrid(object):
         
         self._map[self.getGrid(self._coordtb)[0]][self.getGrid(self._coordtb)[1]] = 2
         self._map[self.getGrid(self._coordcf)[0]][self.getGrid(self._coordcf)[1]] = 3
+        if (self.getGrid(self._coordtb) == self.getGrid(self._coordcf)).all():
+            self._map[self.getGrid(self._coordcf)[0]][self.getGrid(self._coordcf)[1]] = 4
 
         
     def getOccupancy(self):

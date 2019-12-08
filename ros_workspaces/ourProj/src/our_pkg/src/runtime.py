@@ -40,7 +40,7 @@ def main():
     mydata = raw_input("Press any key to start: ")
     rospy.wait_for_service('/takeoff')
     subprocess.call(["rosservice", "call","/takeoff"])
-    time.sleep(5)
+    time.sleep(3)
     
     while not rospy.is_shutdown():
 
@@ -54,7 +54,7 @@ def main():
         # Track turtlebot
         try:
             
-            track_flag = turtlebot_tracker.Track(occupancy_grid)
+            track_flag = turtlebot_tracker.Track(occupancy_grid, obstacle_manager)
 
         except rospy.ROSInterruptException:
             rospy.loginfo("")
