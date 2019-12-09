@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-
+import rospy
+from visualization_msgs.msg import Marker
+from geometry_msgs.msg import Point, Quaternion, Pose, Vector3
+from std_msgs.msg import ColorRGBA, Header
 class Obstacle:
 	def __init__(self, _id, x_pos, y_pos, x_length, y_length, z_height):
 		self._id = _id
@@ -31,16 +34,18 @@ class ObstacleManager:
 	def __init__(self):
 		self._obstacles = {}
 
-	# def show_obstacle_in_rviz(marker_publisher, params):
-	# 	marker = Marker(
-	# 				type=Marker.CUBE,
-	# 				id=0,
-	# 				lifetime=0,
-	# 				pose=Pose(Point(params[1], params[2], 0), Quaternion(0, 0, 0, 0)),
-	# 				scale=Vector3(params[3], params[4], params[5]),
-	# 				header=Header(frame_id='base_link'),
-	# 				color=ColorRGBA(0.0, 1.0, 0.0, 0.8))
-	# 	marker_publisher.publish(marker)
+	def show_obstacle_in_rviz(self,marker_publisher, params):
+		marker = Marker(
+					type=Marker.CUBE,
+					id=0,
+					lifetime=0,
+					pose=Pose(Point(params[1], params[2], 0), Quaternion(0, 0, 0, 1)),
+					scale=Vector3(params[3], params[4], params[5]),
+					color=ColorRGBA(0.0, 1.0, 0.0, 0.8))
+		h = Header()
+		h.stamp = rospy.Time.now()
+		marker.header =  h
+		marker_publisher.publish(marker)
 
 	def createObstacle(self, params):
 		_id = params[0]
@@ -68,9 +73,9 @@ class ObstacleManager:
 			print("Failed to create obstacle")
 
 		# Display in RViz
-		# marker_publisher = rospy.Publisher('visualization_marker', Marker, queue_size=10)
-		# rospy.sleep(0.5)                                                             
-		# show_obstacle_in_rviz(marker_publisher, params)
+		marker_publisher = rospy.Publisher('visualization_marker', Marker, queue_size=10)
+		rospy.sleep(0.5)                                                             
+		self.show_obstacle_in_rviz(marker_publisher, params)
 
 
 	def deleteObstacle(self, param):
