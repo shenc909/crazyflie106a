@@ -15,6 +15,7 @@ class OccupancyGrid(object):
         self._intialized = False
         self._coordcf = [0,0]
         self._coordtb = [0,0]
+        self._next_grid = [0,0]
     # Initialization and loading parameters.
     def Initialize(self):
         self._name = rospy.get_name() + "/grid_map_2d"
@@ -93,12 +94,17 @@ class OccupancyGrid(object):
             c.r = 1.0
             c.g = 1.0
             c.b = 1.0
-            c.a = 1.0
+            c.a = 0.75
+        elif p == 5:
+            c.r = 1.0
+            c.g = 0.1
+            c.b = 1.0
+            c.a = 0.75
         else:
             c.r = p
             c.g = 0.1
             c.b = 1.0 - p
-            c.a = 0.75
+            c.a = 0.3
         return c
 
     # Visualize the map as a collection of flat cubes instead of
@@ -142,6 +148,7 @@ class OccupancyGrid(object):
                 for y in range(gridYmin, gridYmax+1):
                     self._map[x][y] = 1
         
+        self._map[self._next_grid[0]][self._next_grid[1]] = 5
         self._map[self.getGrid(self._coordtb)[0]][self.getGrid(self._coordtb)[1]] = 2
         self._map[self.getGrid(self._coordcf)[0]][self.getGrid(self._coordcf)[1]] = 3
         if (self.getGrid(self._coordtb) == self.getGrid(self._coordcf)).all():
@@ -164,3 +171,6 @@ class OccupancyGrid(object):
     def enterPos(self, coordtb, coordcf):
         self._coordtb = coordtb
         self._coordcf = coordcf
+    
+    def nextGrid(self, next_grid):
+        self._next_grid = next_grid

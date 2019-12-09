@@ -21,7 +21,7 @@
   <!-- Takeoff hover point. -->
   <arg name="takeoff_hover_x" default="0.0" />
   <arg name="takeoff_hover_y" default="0.0" />
-  <arg name="takeoff_hover_z" default="1.2" />
+  <arg name="takeoff_hover_z" default="1.5" />
 
   <!-- Start point for the simulator. -->
   <arg name="sim_init_x" default="0.0" />

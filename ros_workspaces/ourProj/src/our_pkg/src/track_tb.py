@@ -20,6 +20,7 @@ class TrackTurtlebot(object):
         self._tf_listener = tf2_ros.TransformListener(self._tf_buffer)
         self.track_flag = False
         self.landed = False
+        self._speedScale = 1.5
 
     # Initialization and loading parameters.
     def Initialize(self):
@@ -57,6 +58,7 @@ class TrackTurtlebot(object):
             landing_height = 1.1
             tb_height = 0.5
             offset = [0.09, -0.14]
+            offset = [0,0]
 
             movement = [(-1, -1),(0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0)]
             
@@ -67,8 +69,8 @@ class TrackTurtlebot(object):
                 rospy.loginfo("cf not tb")
                 for x in range(8):
                     next_step = cf_grid + movement[x] #[x y] next position
-                    if (occupied_grid[next_step[0]][next_step[1]]) == 0: # if not occupied
-                        grid_distance[x] = np.linalg.norm(tb_pos - occupancy_grid.gridToPoint(next_step))
+                    if not ((occupied_grid[next_step[0]][next_step[1]]) == 1): # if not occupied
+                        grid_distance[x] = np.linalg.norm(tb_grid - next_step)
                         # print(grid_distance[x])
                     else:
                         grid_distance[x] = 10000 # if occupied, dist = inf 
@@ -85,8 +87,8 @@ class TrackTurtlebot(object):
                 # print(tb_grid)
                 # print(tb_grid + movement[shortest_idx])
                 # nextpos.state = [next_step[shortest_idx]+cf_pos, 0, 0, 0]
-                nextpos.state.x = occupancy_grid.gridToPoint((tb_grid + movement[shortest_idx]))[0]
-                nextpos.state.y = occupancy_grid.gridToPoint((tb_grid + movement[shortest_idx]))[1]
+                nextpos.state.x = occupancy_grid.gridToPoint((cf_grid + movement[shortest_idx]))[0] * self._speedScale
+                nextpos.state.y = occupancy_grid.gridToPoint((cf_grid + movement[shortest_idx]))[1] * self._speedScale
                 nextpos.state.z = flying_height
                 nextpos.state.x_dot = 0
                 nextpos.state.y_dot = 0
@@ -96,6 +98,7 @@ class TrackTurtlebot(object):
 
                 self._ref_pub.publish(nextpos)
                 rospy.loginfo("publishing to /ref")
+                occupancy_grid.nextGrid(cf_grid + movement[shortest_idx])
 
             if (cf_grid == tb_grid).all():
                 rospy.loginfo("cf is tb")
@@ -115,6 +118,7 @@ class TrackTurtlebot(object):
                     nextpos.state.z_dot = 0
                     self._ref_pub.publish(nextpos)
                     rospy.loginfo("publishing to /ref")
+                    occupancy_grid.nextGrid(cf_grid)
 
                 else:
                     # Land
@@ -136,11 +140,17 @@ class TrackTurtlebot(object):
                     self.track_flag = True
 
                     if self.track_flag:
-                        time.sleep(3)
-                    
-                        subprocess.call(["rosservice", "call","/land"])
-                        self.track_flag = False
-                        self.landed = True
+                        time.sleep(2)
+                        rospy.loginfo("landing start")
+                        cf_tf_pos = self._tf_buffer.lookup_transform("world", "cf", rospy.Time(0))
+                        tb_tf_pos = self._tf_buffer.lookup_transform("world", "tb", rospy.Time(0))
+                        dist = np.linalg.norm([cf_pos[0]-tb_pos[0],cf_pos[1]-tb_pos[1]])
+                        if dist > 0.05:
+                            rospy.logerr("landing aborted")
+                        else:
+                            subprocess.call(["rosservice", "call","/land"])
+                            self.track_flag = False
+                            self.landed = True
                     # rospy.wait_for_service('landing')
                     # landing = rospy.ServiceProxy('/land', Land)
                     # landing()
