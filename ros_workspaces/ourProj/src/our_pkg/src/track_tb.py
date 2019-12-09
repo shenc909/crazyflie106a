@@ -20,7 +20,7 @@ class TrackTurtlebot(object):
         self._tf_listener = tf2_ros.TransformListener(self._tf_buffer)
         self.track_flag = False
         self.landed = False
-        self._speedScale = 1.5
+        self._speedScale = 0.1
 
     # Initialization and loading parameters.
     def Initialize(self):
@@ -58,49 +58,54 @@ class TrackTurtlebot(object):
             landing_height = 1.1
             tb_height = 0.5
             offset = [0.09, -0.14]
-            offset = [0,0]
+            dist = np.linalg.norm([cf_pos[0]-tb_pos[0],cf_pos[1]-tb_pos[1]])
+            # offset = [0,0]
 
             movement = [(-1, -1),(0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0)]
             
             next_step_name = ["front_left", "front","front_right","right","back_right","back","back_left","left"]
 
             grid_distance = np.ones(8) * shortest_dist
-            if not ((cf_grid == tb_grid).all()):
-                rospy.loginfo("cf not tb")
-                for x in range(8):
-                    next_step = cf_grid + movement[x] #[x y] next position
-                    if not ((occupied_grid[next_step[0]][next_step[1]]) == 1): # if not occupied
-                        grid_distance[x] = np.linalg.norm(tb_grid - next_step)
-                        # print(grid_distance[x])
-                    else:
-                        grid_distance[x] = 10000 # if occupied, dist = inf 
-                for x in range(8):
-                    if grid_distance[x]< shortest_dist:
-                        shortest_idx = x
-                        shortest_dist = grid_distance[x]
-                print ("Going to adjacent " + next_step_name[shortest_idx] + " grid")
 
-                nextpos = PositionVelocityStateStamped()
-                h = std_msgs.msg.Header()
-                h.stamp = rospy.Time.now()
-                nextpos.header =  h
-                # print(tb_grid)
-                # print(tb_grid + movement[shortest_idx])
-                # nextpos.state = [next_step[shortest_idx]+cf_pos, 0, 0, 0]
-                nextpos.state.x = occupancy_grid.gridToPoint((cf_grid + movement[shortest_idx]))[0] * self._speedScale
-                nextpos.state.y = occupancy_grid.gridToPoint((cf_grid + movement[shortest_idx]))[1] * self._speedScale
-                nextpos.state.z = flying_height
-                nextpos.state.x_dot = 0
-                nextpos.state.y_dot = 0
-                nextpos.state.z_dot = 0
+            distanceDiff = np.linalg.norm(tb_pos - cf_pos)
+            if distanceDiff > 0.2:
+                if not ((cf_grid == tb_grid).all()):
+                    rospy.loginfo("cf not tb")
+                    for x in range(8):
+                        next_step = cf_grid + movement[x] #[x y] next position
+                        if not ((occupied_grid[next_step[0]][next_step[1]]) == 1): # if not occupied
+                            grid_distance[x] = np.linalg.norm(tb_grid - next_step)
+                            # print(grid_distance[x])
+                        else:
+                            grid_distance[x] = 10000 # if occupied, dist = inf 
+                    for x in range(8):
+                        if grid_distance[x]< shortest_dist:
+                            shortest_idx = x
+                            shortest_dist = grid_distance[x]
+                    print ("Going to adjacent " + next_step_name[shortest_idx] + " grid")
 
-                # print(nextpos)
+                    nextpos = PositionVelocityStateStamped()
+                    h = std_msgs.msg.Header()
+                    h.stamp = rospy.Time.now()
+                    nextpos.header =  h
+                    # print(tb_grid)
+                    # print(tb_grid + movement[shortest_idx])
+                    # nextpos.state = [next_step[shortest_idx]+cf_pos, 0, 0, 0]
+                    nextpos.state.x = occupancy_grid.gridToPoint((cf_grid + movement[shortest_idx]))[0]
+                    nextpos.state.y = occupancy_grid.gridToPoint((cf_grid + movement[shortest_idx]))[1]
+                    nextpos.state.z = flying_height
+                    nextpos.state.x_dot = movement[shortest_idx][0] * self._speedScale
+                    nextpos.state.y_dot = movement[shortest_idx][1] * self._speedScale
+                    nextpos.state.z_dot = 0
 
-                self._ref_pub.publish(nextpos)
-                rospy.loginfo("publishing to /ref")
-                occupancy_grid.nextGrid(cf_grid + movement[shortest_idx])
+                    # print(nextpos)
 
-            if (cf_grid == tb_grid).all():
+                    self._ref_pub.publish(nextpos)
+                    rospy.loginfo("publishing to /ref")
+                    occupancy_grid.nextGrid(cf_grid + movement[shortest_idx])
+
+            # if (cf_grid == tb_grid).all():
+            else:
                 rospy.loginfo("cf is tb")
                 dist = np.linalg.norm([cf_pos[0]-tb_pos[0],cf_pos[1]-tb_pos[1]])
                 #math.sqrt(math.pow(x_dist, 2) + math.pow(y_dist, 2))
@@ -145,7 +150,7 @@ class TrackTurtlebot(object):
                         cf_tf_pos = self._tf_buffer.lookup_transform("world", "cf", rospy.Time(0))
                         tb_tf_pos = self._tf_buffer.lookup_transform("world", "tb", rospy.Time(0))
                         dist = np.linalg.norm([cf_pos[0]-tb_pos[0],cf_pos[1]-tb_pos[1]])
-                        if dist > 0.05:
+                        if dist > 0.1:
                             rospy.logerr("landing aborted")
                         else:
                             subprocess.call(["rosservice", "call","/land"])

@@ -146,7 +146,11 @@ class OccupancyGrid(object):
 
             for x in range(gridXmin, gridXmax+1):
                 for y in range(gridYmin, gridYmax+1):
-                    self._map[x][y] = 1
+                    try:
+                        self._map[x][y] = 1
+                    except(IndexError):
+                        rospy.logwarn("obstacle out of bounds")
+                        continue
         
         self._map[self._next_grid[0]][self._next_grid[1]] = 5
         self._map[self.getGrid(self._coordtb)[0]][self.getGrid(self._coordtb)[1]] = 2

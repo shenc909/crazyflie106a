@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import sys
 import rospy
 from our_pkg.srv import obstacle_create_srv
@@ -7,7 +8,8 @@ def obstacle_create_client():
     try:
         create_obstacle = rospy.ServiceProxy('create_obstacle', obstacle_create_srv)
         # resp = create_obstacle(pa[0],pa[1],pa[2],pa[3],pa[4],pa[5])
-        resp = create_obstacle("obs1", 0, 10, 30, 8, 10000)
+        resp = create_obstacle("obs1", 0, 0.1, 0.3, 8, 10000)
+        print("Done")
         return resp
     except:
         print("Service call failed")
