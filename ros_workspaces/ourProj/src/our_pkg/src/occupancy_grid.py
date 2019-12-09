@@ -10,7 +10,7 @@ from std_msgs.msg import ColorRGBA
 
 import numpy as np
 
-class OccupancyGrid(object):
+class OccupancyGrid2d(object):
     def __init__(self):
         self._intialized = False
         self._coordcf = [0,0]

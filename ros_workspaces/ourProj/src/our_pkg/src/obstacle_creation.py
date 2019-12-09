@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 class Obstacle:
 	def __init__(self, _id, x_pos, y_pos, x_length, y_length, z_height):
 		self._id = _id

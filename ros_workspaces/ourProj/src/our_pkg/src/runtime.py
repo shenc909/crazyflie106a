@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from obstacle_creation import Obstacle, ObstacleManager
 from track_tb import TrackTurtlebot
-from occupancy_grid import OccupancyGrid
+from occupancy_grid import OccupancyGrid2d
 from our_pkg.srv import obstacle_create_srv
 import rospy
 import subprocess
@@ -30,7 +30,7 @@ def main():
 
     r = rospy.Rate(20)
 
-    occupancy_grid = OccupancyGrid()
+    occupancy_grid = OccupancyGrid2d()
     occupancy_grid.Initialize()
 
     turtlebot_tracker = TrackTurtlebot()
