@@ -39,7 +39,7 @@ class TrackTurtlebot(object):
 
         return True
 
-    def Track(self,occupancy_grid, obstacle_manager):
+    def Track(self, occupancy_grid, obstacle_manager, mod_occupied_grid):
 
         self._track_flag = False
 
@@ -47,7 +47,8 @@ class TrackTurtlebot(object):
             cf_tf_pos = self._tf_buffer.lookup_transform("world", "cf", rospy.Time(0))
             tb_tf_pos = self._tf_buffer.lookup_transform("world", "tb", rospy.Time(0))
             # print("HAPPY " + str(rospy.Time.now()))
-            occupied_grid = occupancy_grid.getOccupancy() #occupied = 1, not occupied = 0
+            # occupied_grid = occupancy_grid.getOccupancy() #occupied = 1, not occupied = 0
+            occupied_grid = mod_occupied_grid
             cf_pos = np.array([cf_tf_pos.transform.translation.x, cf_tf_pos.transform.translation.y]) # cf [x y] position from motive
             tb_pos = np.array([tb_tf_pos.transform.translation.x, tb_tf_pos.transform.translation.y]) # tb [x y] position from motive
             occupancy_grid.enterPos(tb_pos, cf_pos)

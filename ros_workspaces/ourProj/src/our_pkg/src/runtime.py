@@ -2,6 +2,7 @@
 from obstacle_creation import Obstacle, ObstacleManager
 from track_tb import TrackTurtlebot
 from occupancy_grid import OccupancyGrid
+from position_helper import PositionHelper
 from our_pkg.srv import obstacle_create_srv
 import rospy
 import subprocess
@@ -37,6 +38,9 @@ def main():
     turtlebot_tracker.Initialize()
     track_flag = False
 
+    position_helper = PositionHelper()
+    prev_cf_pos = np.array([0,0])
+
     mydata = raw_input("Press any key to start: ")
     rospy.wait_for_service('/takeoff')
     subprocess.call(["rosservice", "call","/takeoff"])
@@ -51,10 +55,19 @@ def main():
         except rospy.ROSInterruptException:
             rospy.loginfo("")
 
+        # Get current crazyflie grid pos to increase cost of returning to same grid
+        try:
+            mod_occupied_grid = occupancy_grid.getOccupancy()
+            mod_occupied_grid[prev_cf_pos[0]][prev_cf_pos[1]] = 1
+            prev_cf_pos = position_helper.getCfGrid(occupancy_grid)
+
+        except rospy.ROSInterruptException:
+            rospy.loginfo("")
+
         # Track turtlebot
         try:
             
-            track_flag = turtlebot_tracker.Track(occupancy_grid, obstacle_manager)
+            track_flag = turtlebot_tracker.Track(occupancy_grid, obstacle_manager, mod_occupied_grid)
 
         except rospy.ROSInterruptException:
             rospy.loginfo("")
