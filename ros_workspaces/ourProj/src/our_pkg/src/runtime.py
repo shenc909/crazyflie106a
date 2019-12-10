@@ -7,7 +7,9 @@ from our_pkg.srv import obstacle_create_srv
 import rospy
 import subprocess
 import time
-
+import numpy as np
+import tf2_ros
+import tf
 
 obstacle_manager = ObstacleManager()
 
@@ -22,10 +24,18 @@ def main():
     try:
         s = rospy.Service('create_obstacle', obstacle_create_srv, handle_create_request)
         rospy.init_node('runtime', anonymous=True)
+        tf_buffer = tf2_ros.Buffer()
+        tf_listener = tf2_ros.TransformListener(tf_buffer)
+        cf_tf_pos = tf_buffer.lookup_transform("world", "cf", rospy.Time(0))
+        cf_pos = np.array([cf_tf_pos.transform.translation.x, cf_tf_pos.transform.translation.y]) # cf [x y] position from motive
+        rospy.set_param("~hover/x", cf_pos[0])
+        rospy.set_param("~hover/y", cf_pos[1])
 
 
-    except rospy.ROSInterruptException:
+
+    except (rospy.ROSInterruptException, tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
         rospy.loginfo("")
+        rospy.logerr("No takeoff position info, using defaults...")
 
     # Build occupancy grid
 
@@ -42,6 +52,7 @@ def main():
     prev_cf_pos = np.array([0,0])
 
     mydata = raw_input("Press any key to start: ")
+
     rospy.wait_for_service('/takeoff')
     subprocess.call(["rosservice", "call","/takeoff"])
     time.sleep(3)
