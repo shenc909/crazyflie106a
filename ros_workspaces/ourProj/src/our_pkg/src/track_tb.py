@@ -63,15 +63,16 @@ class TrackTurtlebot(object):
             # offset = [0.09, -0.14]
             dist = np.linalg.norm(cf_pos-tb_pos)
             offset = [-0.15,-0.10]
+            ignoreGridDist = 0.2
 
-            movement = [(-1, -1),(0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0)]
+            movement = [(1, 1),(1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (0, 1)]
             
             next_step_name = ["front_left", "front","front_right","right","back_right","back","back_left","left"]
 
             grid_distance = np.ones(8) * shortest_dist
 
             distanceDiff = np.linalg.norm(tb_pos - cf_pos)
-            if distanceDiff > 0.2:
+            if distanceDiff > ignoreGridDist:
                 if not ((cf_grid == tb_grid).all()):
                     rospy.loginfo("cf not tb")
                     for x in range(8):
@@ -97,8 +98,8 @@ class TrackTurtlebot(object):
                     nextpos.state.x = occupancy_grid.gridToPoint((cf_grid + movement[shortest_idx]))[0]
                     nextpos.state.y = occupancy_grid.gridToPoint((cf_grid + movement[shortest_idx]))[1]
                     nextpos.state.z = flying_height
-                    nextpos.state.x_dot = 0#(movement[shortest_idx])[0] * self._speedScale * 1
-                    nextpos.state.y_dot = 0 #(movement[shortest_idx])[1] * self._speedScale * 1
+                    nextpos.state.x_dot = (movement[shortest_idx])[0] * self._speedScale * 1
+                    nextpos.state.y_dot = (movement[shortest_idx])[1] * self._speedScale * 1
                     nextpos.state.z_dot = 0
 
                     # print(nextpos)
@@ -110,14 +111,13 @@ class TrackTurtlebot(object):
             # if (cf_grid == tb_grid).all():
             else:
                 rospy.loginfo("cf is tb")
-                dist = np.linalg.norm([cf_pos[0]-tb_pos[0],cf_pos[1]-tb_pos[1]])
+                dist = np.linalg.norm(cf_pos-tb_pos)
                 #math.sqrt(math.pow(x_dist, 2) + math.pow(y_dist, 2))
                 if dist > 0.03:
                     nextpos = PositionVelocityStateStamped()
                     h = std_msgs.msg.Header()
                     h.stamp = rospy.Time.now()
                     nextpos.header =  h
-                    # nextpos.state = [tb_pos+offset,flying_height, 0, 0, 0]
                     nextpos.state.x = tb_pos[0] + offset[0]
                     nextpos.state.y = tb_pos[1] + offset[1]
                     nextpos.state.z = flying_height
@@ -152,7 +152,7 @@ class TrackTurtlebot(object):
                         rospy.loginfo("landing start")
                         cf_tf_pos = self._tf_buffer.lookup_transform("world", "cf", rospy.Time(0))
                         tb_tf_pos = self._tf_buffer.lookup_transform("world", "tb", rospy.Time(0))
-                        dist = np.linalg.norm([cf_pos[0]-tb_pos[0],cf_pos[1]-tb_pos[1]])
+                        dist = np.linalg.norm(cf_pos-tb_pos)
                         if dist > 0.05:
                             rospy.logerr("landing aborted")
                         else:
