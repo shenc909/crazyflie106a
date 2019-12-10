@@ -149,7 +149,7 @@ class OccupancyGrid(object):
                     try:
                         self._map[x][y] = 1
                     except(IndexError):
-                        rospy.logwarn("obstacle out of bounds")
+                        rospy.logwarn("obstacle out of map bounds")
                         continue
         
         self._map[self._next_grid[0]][self._next_grid[1]] = 5

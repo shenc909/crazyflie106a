@@ -63,6 +63,8 @@ Visualization Manager:
           Value: true
         cf/base_link:
           Value: true
+        cf7:
+          Value: true
         crazyflie/base_link:
           Value: false
         tb:
@@ -81,6 +83,8 @@ Visualization Manager:
               {}
             crazyflie/base_link:
               {}
+          cf7:
+            {}
           tb:
             {}
       Update Interval: 0
@@ -121,7 +125,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 6.156983852386475
+      Distance: 5.207571029663086
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -136,10 +140,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.8247965574264526
+      Pitch: 0.5547967553138733
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 6.080413818359375
+      Yaw: 0.8572288155555725
     Saved: ~
 Window Geometry:
   Displays:

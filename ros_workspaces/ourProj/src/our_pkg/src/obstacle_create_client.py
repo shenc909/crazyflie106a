@@ -8,7 +8,8 @@ def obstacle_create_client():
     try:
         create_obstacle = rospy.ServiceProxy('create_obstacle', obstacle_create_srv)
         # resp = create_obstacle(pa[0],pa[1],pa[2],pa[3],pa[4],pa[5])
-        resp = create_obstacle("obs1", 0, 0.1, 0.3, 8, 10000)
+        resp = create_obstacle("obs3", 0.45, -0.65, 0.8, 0.8, 10)
+        # resp = create_obstacle("obs2", -0.25, 0.25, 0.3, 0.3, 10)
         print("Done")
         return resp
     except:
