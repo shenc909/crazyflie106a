@@ -10,6 +10,7 @@ import time
 import numpy as np
 import tf2_ros
 import tf
+import roslaunch
 
 obstacle_manager = ObstacleManager()
 
@@ -29,14 +30,14 @@ def main():
         time.sleep(1)
         cf_tf_pos = tf_buffer.lookup_transform("world", "cf", rospy.Time(0))
         cf_pos = np.array([cf_tf_pos.transform.translation.x, cf_tf_pos.transform.translation.y]) # cf [x y] position from motive
-        rospy.set_param("/takeoff_server/hover/x", float(cf_pos[0]))
-        rospy.set_param("/takeoff_server/hover/y", float(cf_pos[1]))
+        subprocess.call(["roslaunch", "crazyflie_examples","hw_hover.launch", "takeoff_hover_x:=" + str(cf_pos[0]), "takeoff_hover_y:=" + str(cf_pos[1]), "takeoff_hover_z:=1.5"])
 
 
 
     except (rospy.ROSInterruptException, tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
         rospy.loginfo("")
         rospy.logerr("No takeoff position info, using defaults...")
+        subprocess.call(["roslaunch", "crazyflie_examples","hw_hover.launch"])
 
     # Build occupancy grid
 
