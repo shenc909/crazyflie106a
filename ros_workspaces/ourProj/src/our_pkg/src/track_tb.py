@@ -64,6 +64,7 @@ class TrackTurtlebot(object):
 
             if not self._initFlag:
                 self._returnGrid = self.ticked(cf_grid)
+                self._next_grid = cf_grid
                 self._initFlag = True
 
             #tuning constants
@@ -88,7 +89,7 @@ class TrackTurtlebot(object):
             if distanceDiff > ignoreGridDist:
                 if not ((cf_grid == tb_grid).all()):
                     rospy.loginfo("cf not tb")
-                    if ((cf_grid == next_grid)).all():
+                    if ((cf_grid == self._next_grid)).all():
                         self._returnGrid = self.ticked(cf_grid)
                         for x in range(8):
                             next_step = cf_grid + movement[x] #[x y] next position
@@ -119,19 +120,21 @@ class TrackTurtlebot(object):
                         # print(tb_grid)
                         # print(tb_grid + movement[shortest_idx])
                         # nextpos.state = [next_step[shortest_idx]+cf_pos, 0, 0, 0]
-                        next_grid = cf_grid + movement[shortest_idx]
+                        self._next_grid = cf_grid + movement[shortest_idx]
                         nextpos.state.x = occupancy_grid.gridToPoint((cf_grid + movement[shortest_idx]))[0]
                         nextpos.state.y = occupancy_grid.gridToPoint((cf_grid + movement[shortest_idx]))[1]
                         nextpos.state.z = flying_height
                         nextpos.state.x_dot = (movement[shortest_idx])[0] * self._speedScale * 1
                         nextpos.state.y_dot = (movement[shortest_idx])[1] * self._speedScale * 1
                         nextpos.state.z_dot = 0
+                        self._ref_pub.publish(nextpos)
+                        occupancy_grid.nextGrid(self._next_grid)
                         
                         
                     # print(nextpos)
-                    self._ref_pub.publish(nextpos)
+                    
                     rospy.loginfo("publishing to /ref")
-                    occupancy_grid.nextGrid(cf_grid + movement[shortest_idx])
+                    
 
             # if (cf_grid == tb_grid).all():
             else:
