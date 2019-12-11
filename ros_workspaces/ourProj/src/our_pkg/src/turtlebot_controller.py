@@ -39,7 +39,6 @@ def controller():
             rospy.loginfo("")
 
         if len(grids_traversed) == 5:
-            t0 = rospy.Time.now().to_sec()
             current_angle = 0
 
             vel_msg.linear.x = 0
@@ -48,7 +47,7 @@ def controller():
             vel_msg.angular.x = 0
             vel_msg.angular.y = 0
             vel_msg.angular.z = 1
-
+            t0 = rospy.Time.now().to_sec()
             while (current_angle < rot_angle):
                 pub.publish(vel_msg)
                 t1 = rospy.Time.now().to_sec()
