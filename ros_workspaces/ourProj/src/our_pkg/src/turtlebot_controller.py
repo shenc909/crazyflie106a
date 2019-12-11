@@ -11,7 +11,7 @@ import numpy as np
 def controller():
     try:
         #TODO: get correct topic to publish to
-        pub = rospy.Publisher("/turtle1/cmd_vel", Twist, queue_size=10)
+        pub = rospy.Publisher("/cmd_vel_mux/input/navi", Twist, queue_size=10)
         tf_buffer = tf2_ros.Buffer()
         tf_listener = tf2_ros.TransformListener(tf_buffer)
         time.sleep(1)
