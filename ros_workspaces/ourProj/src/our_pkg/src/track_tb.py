@@ -29,6 +29,13 @@ class TrackTurtlebot(object):
         self._history.append(np.array([0,0]))
         self._history.append(np.array([0,0]))
         self._initFlag = False
+        self._poseHistory = list()
+        self._poseCounter = 0
+        self._poseHistoryCount = 5
+        self._loopTime = 0.05
+
+        for i in range(self._poseHistoryCount):
+            self._poseHistory.append(np.array([0,0]))
 
     # Initialization and loading parameters.
     def Initialize(self):
@@ -58,6 +65,7 @@ class TrackTurtlebot(object):
             occupied_grid = mod_occupied_grid
             cf_pos = np.array([cf_tf_pos.transform.translation.x, cf_tf_pos.transform.translation.y]) # cf [x y] position from motive
             tb_pos = np.array([tb_tf_pos.transform.translation.x, tb_tf_pos.transform.translation.y]) # tb [x y] position from motive
+            tb_vel = self.findVel(tb_pos)
             occupancy_grid.enterPos(tb_pos, cf_pos)
             cf_grid = occupancy_grid.getGrid(cf_pos) # cf grid number [x y] from occupancy_grid
             tb_grid = occupancy_grid.getGrid(tb_pos) # tb grid number [x y] from occupancy_grid
@@ -87,48 +95,46 @@ class TrackTurtlebot(object):
 
             distanceDiff = np.linalg.norm(tb_pos - cf_pos)
             if distanceDiff > ignoreGridDist:
-                if not ((cf_grid == tb_grid).all()):
                     rospy.loginfo("cf not tb")
-                    if ((cf_grid == self._next_grid)).all():
-                        self._returnGrid = self.ticked(cf_grid)
-                        for x in range(8):
-                            next_step = cf_grid + movement[x] #[x y] next position
-                            if not ((occupied_grid[next_step[0]][next_step[1]]) == 1): # if not occupied
-                                grid_distance[x] = np.linalg.norm(tb_grid - next_step)
-                                # print(grid_distance[x])
-                            else:
-                                grid_distance[x] = 10000 # if occupied, dist = inf 
-                                occupied_flag = True
-                        
-                        if occupied_flag:
-                            grid_distance[0] = 10000
-                            grid_distance[2] = 10000
-                            grid_distance[4] = 10000
-                            grid_distance[6] = 10000
-                                
+                    self._returnGrid = self.ticked(cf_grid)
+                    for x in range(8):
+                        next_step = cf_grid + movement[x] #[x y] next position
+                        if not ((occupied_grid[next_step[0]][next_step[1]]) == 1): # if not occupied
+                            grid_distance[x] = np.linalg.norm(tb_grid - next_step)
+                            # print(grid_distance[x])
+                        else:
+                            grid_distance[x] = 10000 # if occupied, dist = inf 
+                            occupied_flag = True
+                    
+                    if occupied_flag:
+                        grid_distance[0] = 10000
+                        grid_distance[2] = 10000
+                        grid_distance[4] = 10000
+                        grid_distance[6] = 10000
+                            
 
-                        for x in range(8):
-                            if grid_distance[x]< shortest_dist:
-                                shortest_idx = x
-                                shortest_dist = grid_distance[x]
-                        print ("Going to adjacent " + next_step_name[shortest_idx] + " grid")
+                    for x in range(8):
+                        if grid_distance[x]< shortest_dist:
+                            shortest_idx = x
+                            shortest_dist = grid_distance[x]
+                    print ("Going to adjacent " + next_step_name[shortest_idx] + " grid")
 
-                        nextpos = PositionVelocityStateStamped()
-                        h = std_msgs.msg.Header()
-                        h.stamp = rospy.Time.now()
-                        nextpos.header =  h
-                        # print(tb_grid)
-                        # print(tb_grid + movement[shortest_idx])
-                        # nextpos.state = [next_step[shortest_idx]+cf_pos, 0, 0, 0]
-                        self._next_grid = cf_grid + movement[shortest_idx]
-                        nextpos.state.x = occupancy_grid.gridToPoint((cf_grid + movement[shortest_idx]))[0]
-                        nextpos.state.y = occupancy_grid.gridToPoint((cf_grid + movement[shortest_idx]))[1]
-                        nextpos.state.z = flying_height
-                        nextpos.state.x_dot = (movement[shortest_idx])[0] * self._speedScale * 1
-                        nextpos.state.y_dot = (movement[shortest_idx])[1] * self._speedScale * 1
-                        nextpos.state.z_dot = 0
-                        self._ref_pub.publish(nextpos)
-                        occupancy_grid.nextGrid(self._next_grid)
+                    nextpos = PositionVelocityStateStamped()
+                    h = std_msgs.msg.Header()
+                    h.stamp = rospy.Time.now()
+                    nextpos.header =  h
+                    # print(tb_grid)
+                    # print(tb_grid + movement[shortest_idx])
+                    # nextpos.state = [next_step[shortest_idx]+cf_pos, 0, 0, 0]
+                    self._next_grid = cf_grid + movement[shortest_idx]
+                    nextpos.state.x = occupancy_grid.gridToPoint((cf_grid + movement[shortest_idx]))[0]
+                    nextpos.state.y = occupancy_grid.gridToPoint((cf_grid + movement[shortest_idx]))[1]
+                    nextpos.state.z = flying_height
+                    nextpos.state.x_dot = (movement[shortest_idx])[0] * self._speedScale * 1
+                    nextpos.state.y_dot = (movement[shortest_idx])[1] * self._speedScale * 1
+                    nextpos.state.z_dot = 0
+                    self._ref_pub.publish(nextpos)
+                    occupancy_grid.nextGrid(self._next_grid)
                         
                         
                     # print(nextpos)
@@ -148,9 +154,9 @@ class TrackTurtlebot(object):
                     nextpos.header =  h
                     nextpos.state.x = tb_pos[0] + offset[0]
                     nextpos.state.y = tb_pos[1] + offset[1]
-                    nextpos.state.z = flying_height
-                    nextpos.state.x_dot = self._landingGain * (tb_pos[0] - cf_pos[0])
-                    nextpos.state.y_dot = self._landingGain * (tb_pos[1] - cf_pos[1])
+                    nextpos.state.z = landing_height
+                    nextpos.state.x_dot = self._landingGain * tb_vel[0]#(tb_pos[0] - cf_pos[0])
+                    nextpos.state.y_dot = self._landingGain * tb_vel[1]#(tb_pos[1] - cf_pos[1])
                     nextpos.state.z_dot = 0
                     self._ref_pub.publish(nextpos)
                     rospy.loginfo("publishing to /ref")
@@ -169,14 +175,14 @@ class TrackTurtlebot(object):
                     nextpos.state.x = tb_pos[0] + offset[0]
                     nextpos.state.y = tb_pos[1] + offset[1]
                     nextpos.state.z = landing_height
-                    nextpos.state.x_dot = 0
-                    nextpos.state.y_dot = 0
+                    nextpos.state.x_dot = self._landingGain * tb_vel[0]#(tb_pos[0] - cf_pos[0])
+                    nextpos.state.y_dot = self._landingGain * tb_vel[1]#(tb_pos[1] - cf_pos[1])
                     nextpos.state.z_dot = 0
                     self._ref_pub.publish(nextpos)
                     self._track_flag = True
 
                     if self._track_flag:
-                        time.sleep(2)
+                        time.sleep(1)
                         rospy.loginfo("landing start")
                         cf_tf_pos = self._tf_buffer.lookup_transform("world", "cf", rospy.Time(0))
                         tb_tf_pos = self._tf_buffer.lookup_transform("world", "tb", rospy.Time(0))
@@ -218,7 +224,15 @@ class TrackTurtlebot(object):
 
     def ticked(self, inputGrid):
         returnItem = self._history[self._counter]
-        self._counter = self._counter + 1
-        self._counter = self._counter%3
-        self._history[self._counter] = inputGrid
+        if((returnItem == inputGrid).all()):
+            self._counter = self._counter + 1
+            self._counter = self._counter%3
+            self._history[self._counter] = inputGrid
         return returnItem
+
+    def findVel(self, inputPose):
+        self._poseCounter += 1
+        self._poseCounter % self._poseHistoryCount
+        self._poseHistory[self._poseCounter] = inputPose
+        self._calcVel = (self._poseHistory[(self._poseCounter - 1) % self._poseHistoryCount] - inputPose)/(self._loopTime * self._poseHistoryCount)
+        return self._calcVel
