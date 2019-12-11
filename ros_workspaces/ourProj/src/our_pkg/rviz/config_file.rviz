@@ -63,8 +63,6 @@ Visualization Manager:
           Value: true
         cf/base_link:
           Value: true
-        cf7:
-          Value: true
         crazyflie/base_link:
           Value: false
         tb:
@@ -83,8 +81,6 @@ Visualization Manager:
               {}
             crazyflie/base_link:
               {}
-          cf7:
-            {}
           tb:
             {}
       Update Interval: 0
@@ -140,10 +136,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5547967553138733
+      Pitch: 0.6297966837882996
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.8572288155555725
+      Yaw: 2.9872283935546875
     Saved: ~
 Window Geometry:
   Displays:

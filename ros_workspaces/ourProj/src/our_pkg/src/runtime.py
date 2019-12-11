@@ -26,10 +26,11 @@ def main():
         rospy.init_node('runtime', anonymous=True)
         tf_buffer = tf2_ros.Buffer()
         tf_listener = tf2_ros.TransformListener(tf_buffer)
+        time.sleep(1)
         cf_tf_pos = tf_buffer.lookup_transform("world", "cf", rospy.Time(0))
         cf_pos = np.array([cf_tf_pos.transform.translation.x, cf_tf_pos.transform.translation.y]) # cf [x y] position from motive
-        rospy.set_param("~hover/x", cf_pos[0])
-        rospy.set_param("~hover/y", cf_pos[1])
+        rospy.set_param("/takeoff_server/hover/x", float(cf_pos[0]))
+        rospy.set_param("/takeoff_server/hover/y", float(cf_pos[1]))
 
 
 
@@ -49,19 +50,20 @@ def main():
     track_flag = False
 
     position_helper = PositionHelper()
-    prev_cf_pos = np.array([0,0])
+    prev_cf_pos = [0,0]
 
     mydata = raw_input("Press any key to start: ")
 
     rospy.wait_for_service('/takeoff')
     subprocess.call(["rosservice", "call","/takeoff"])
+    returnGrid = np.array([0,0])
     time.sleep(3)
     
     while not rospy.is_shutdown():
 
         try:
             occupancy_grid.Update(obstacle_manager.getObstacles())
-            occupancy_grid.Visualize()
+            
 
         except rospy.ROSInterruptException:
             rospy.loginfo("")
@@ -69,8 +71,8 @@ def main():
         # Get current crazyflie grid pos to increase cost of returning to same grid
         try:
             mod_occupied_grid = occupancy_grid.getOccupancy()
-            mod_occupied_grid[prev_cf_pos[0]][prev_cf_pos[1]] = 1
-            prev_cf_pos = position_helper.getCfGrid(occupancy_grid)
+            mod_occupied_grid[returnGrid[0]][returnGrid[1]] = 1
+            occupancy_grid.Visualize()
 
         except rospy.ROSInterruptException:
             rospy.loginfo("")
@@ -78,7 +80,7 @@ def main():
         # Track turtlebot
         try:
             
-            track_flag = turtlebot_tracker.Track(occupancy_grid, obstacle_manager, mod_occupied_grid)
+            track_flag, returnGrid = turtlebot_tracker.Track(occupancy_grid, obstacle_manager, mod_occupied_grid)
 
         except rospy.ROSInterruptException:
             rospy.loginfo("")

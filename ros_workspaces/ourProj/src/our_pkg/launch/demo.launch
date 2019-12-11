@@ -40,6 +40,20 @@
   <arg name="x_dim" default="7" />
   <arg name="u_dim" default="4" />
 
+<!-- Frames of reference. -->
+  <arg name="sensor_frame" default="base_link" />
+
+  <!-- Topics. -->
+  <arg name="sensor_topic" default="/scan" />
+  <arg name="vis_topic" default="/vis/map" />
+
+  <!-- Dimensions and bounds. -->
+  <arg name="x_num" default="30" />
+  <arg name="x_min" default="-3.0" />
+  <arg name="x_max" default="3.0" />
+  <arg name="y_num" default="30" />
+  <arg name="y_min" default="-3.0" />
+  <arg name="y_max" default="3.0" />
 
   <!-- TF static publisher to create a base_link frame for the crazyflie. -->
   <node pkg="tf"
@@ -47,6 +61,27 @@
         name="robot_base_link_publisher"
         args="0 0 0 0 0 0 1 $(arg robot_frame) $(arg robot_frame)/base_link 100">
   </node>
+
+  <!-- Mapper node. -->
+  <node name="runtime"
+        pkg="our_pkg"
+        type="runtime.py"
+        output="screen">
+
+    <param name="frames/fixed" value="$(arg fixed_frame)" />
+    <param name="frames/sensor" value="$(arg sensor_frame)" />
+
+    <param name="topics/vis" value="$(arg vis_topic)" />
+    <param name="topics/sensor" value="$(arg sensor_topic)" />
+
+    <param name="x/num" value="$(arg x_num)" />
+    <param name="x/min" value="$(arg x_min)" />
+    <param name="x/max" value="$(arg x_max)" />
+    <param name="y/num" value="$(arg y_num)" />
+    <param name="y/min" value="$(arg y_min)" />
+    <param name="y/max" value="$(arg y_max)" />
+  </node>
+
 
 
   <!-- Crazyflie interface. -->
@@ -135,40 +170,8 @@
     <param name="topics/in_flight" value="$(arg in_flight_topic)" />
   </node>
 
-  <!-- Frames of reference. -->
-  <arg name="sensor_frame" default="base_link" />
+  
 
-  <!-- Topics. -->
-  <arg name="sensor_topic" default="/scan" />
-  <arg name="vis_topic" default="/vis/map" />
-
-  <!-- Dimensions and bounds. -->
-  <arg name="x_num" default="30" />
-  <arg name="x_min" default="-3.0" />
-  <arg name="x_max" default="3.0" />
-  <arg name="y_num" default="30" />
-  <arg name="y_min" default="-3.0" />
-  <arg name="y_max" default="3.0" />
-
-  <!-- Mapper node. -->
-  <node name="runtime"
-        pkg="our_pkg"
-        type="runtime.py"
-        output="screen">
-
-    <param name="frames/fixed" value="$(arg fixed_frame)" />
-    <param name="frames/sensor" value="$(arg sensor_frame)" />
-
-    <param name="topics/vis" value="$(arg vis_topic)" />
-    <param name="topics/sensor" value="$(arg sensor_topic)" />
-
-    <param name="x/num" value="$(arg x_num)" />
-    <param name="x/min" value="$(arg x_min)" />
-    <param name="x/max" value="$(arg x_max)" />
-    <param name="y/num" value="$(arg y_num)" />
-    <param name="y/min" value="$(arg y_min)" />
-    <param name="y/max" value="$(arg y_max)" />
-  </node>
-
+  
   <node type="rviz" name="rviz" pkg="rviz" args="-d $(find our_pkg)/rviz/config_file.rviz" />
 </launch>
