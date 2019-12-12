@@ -32,6 +32,7 @@ class OccupancyGrid(object):
 
         # Set up the map.
         self._map = np.zeros((self._x_num, self._y_num))
+        self._visualMap = np.copy(self._map)
 
         self._initialized = True
         return True
@@ -78,7 +79,7 @@ class OccupancyGrid(object):
 
     # Colormap to take log odds at a voxel to a RGBA color.
     def Colormap(self, ii, jj):
-        p = self._map[ii, jj]
+        p = self._visualMap[ii, jj]
         c = ColorRGBA()
         if p == 2:
             c.r = 0.1
@@ -144,19 +145,20 @@ class OccupancyGrid(object):
             gridYmin = int((obj.getYmin()-self._y_min)/self._y_res)
             gridYmax = int((obj.getYmax()-self._y_min)/self._y_res)
 
-            for x in range(gridXmin, gridXmax+1):
-                for y in range(gridYmin, gridYmax+1):
+            for x in range(gridXmin-1, gridXmax+2):
+                for y in range(gridYmin-1, gridYmax+2):
                     try:
                         self._map[x][y] = 1
                     except(IndexError):
                         rospy.logwarn("obstacle out of map bounds")
                         continue
         
-        self._map[self._next_grid[0]][self._next_grid[1]] = 5
-        self._map[self.getGrid(self._coordtb)[0]][self.getGrid(self._coordtb)[1]] = 2
-        self._map[self.getGrid(self._coordcf)[0]][self.getGrid(self._coordcf)[1]] = 3
+        self._visualMap = np.copy(self._map)
+        self._visualMap[int(self._next_grid[0])][int(self._next_grid[1])] = 5
+        self._visualMap[self.getGrid(self._coordtb)[0]][self.getGrid(self._coordtb)[1]] = 2
+        self._visualMap[self.getGrid(self._coordcf)[0]][self.getGrid(self._coordcf)[1]] = 3
         if (self.getGrid(self._coordtb) == self.getGrid(self._coordcf)).all():
-            self._map[self.getGrid(self._coordcf)[0]][self.getGrid(self._coordcf)[1]] = 4
+            self._visualMap[self.getGrid(self._coordcf)[0]][self.getGrid(self._coordcf)[1]] = 4
 
         
     def getOccupancy(self):

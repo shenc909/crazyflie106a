@@ -30,14 +30,14 @@ def main():
         time.sleep(1)
         cf_tf_pos = tf_buffer.lookup_transform("world", "cf", rospy.Time(0))
         cf_pos = np.array([cf_tf_pos.transform.translation.x, cf_tf_pos.transform.translation.y]) # cf [x y] position from motive
-        subprocess.call(["roslaunch", "crazyflie_examples","hw_hover.launch", "takeoff_hover_x:=" + str(cf_pos[0]), "takeoff_hover_y:=" + str(cf_pos[1]), "takeoff_hover_z:=1.5"])
+        # subprocess.call(["roslaunch", "crazyflie_examples","hw_hover.launch", "takeoff_hover_x:=" + str(cf_pos[0]), "takeoff_hover_y:=" + str(cf_pos[1]), "takeoff_hover_z:=1.5"])
 
 
 
     except (rospy.ROSInterruptException, tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
         rospy.loginfo("")
-        rospy.logerr("No takeoff position info, using defaults...")
-        subprocess.call(["roslaunch", "crazyflie_examples","hw_hover.launch"])
+        # rospy.logerr("No takeoff position info, using defaults...")
+        # subprocess.call(["roslaunch", "crazyflie_examples","hw_hover.launch"])
 
     # Build occupancy grid
 
@@ -50,7 +50,7 @@ def main():
     turtlebot_tracker.Initialize()
     track_flag = False
 
-    position_helper = PositionHelper()
+    # position_helper = PositionHelper()
     prev_cf_pos = [0,0]
 
     mydata = raw_input("Press any key to start: ")
@@ -72,7 +72,7 @@ def main():
         # Get current crazyflie grid pos to increase cost of returning to same grid
         try:
             mod_occupied_grid = occupancy_grid.getOccupancy()
-            mod_occupied_grid[returnGrid[0]][returnGrid[1]] = 1
+            # mod_occupied_grid[returnGrid[0]][returnGrid[1]] = 1
             occupancy_grid.Visualize()
 
         except rospy.ROSInterruptException:

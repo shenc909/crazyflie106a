@@ -9,6 +9,7 @@ import std_msgs.msg
 import std_srvs
 import subprocess
 import time
+from dijkstra import dijkstras
 # import tf_listener
 
 class TrackTurtlebot(object): 
@@ -20,11 +21,13 @@ class TrackTurtlebot(object):
         self._tf_listener = tf2_ros.TransformListener(self._tf_buffer)
         self._track_flag = False
         self._landed = False
-        self._speedScale = 0.1
+        self._speedScale = 0.05
         self._landingGain = 0.3
         self._LastGrid = np.array([0,0])
         self._counter = 0
         self._history = list()
+        self._history.append(np.array([0,0]))
+        self._history.append(np.array([0,0]))
         self._history.append(np.array([0,0]))
         self._history.append(np.array([0,0]))
         self._history.append(np.array([0,0]))
@@ -34,7 +37,7 @@ class TrackTurtlebot(object):
         self._poseHistoryCount = 5
         self._loopTime = 0.05
 
-        for i in range(self._poseHistoryCount):
+        for a in range(self._poseHistoryCount):
             self._poseHistory.append(np.array([0,0]))
 
     # Initialization and loading parameters.
@@ -84,7 +87,7 @@ class TrackTurtlebot(object):
             # offset = [0.09, -0.14]
             dist = np.linalg.norm(cf_pos-tb_pos)
             offset = [-0.15,-0.10]
-            ignoreGridDist = 0.2
+            ignoreGridDist = 0.25
 
             movement = [(1, 1),(1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (0, 1)]
             
@@ -97,27 +100,35 @@ class TrackTurtlebot(object):
             if distanceDiff > ignoreGridDist:
                     rospy.loginfo("cf not tb")
                     self._returnGrid = self.ticked(cf_grid)
-                    for x in range(8):
-                        next_step = cf_grid + movement[x] #[x y] next position
-                        if not ((occupied_grid[next_step[0]][next_step[1]]) == 1): # if not occupied
-                            grid_distance[x] = np.linalg.norm(tb_grid - next_step)
-                            # print(grid_distance[x])
-                        else:
-                            grid_distance[x] = 10000 # if occupied, dist = inf 
-                            occupied_flag = True
+                    # for x in range(8):
+                    #     next_step = cf_grid + movement[x] #[x y] next position
+                    #     if not ((occupied_grid[next_step[0]][next_step[1]]) == 1): # if not occupied
+                    #         grid_distance[x] = np.linalg.norm(tb_grid - next_step)
+                    #         # print(grid_distance[x])
+                    #     else:
+                    #         grid_distance[x] = 10000 # if occupied, dist = inf 
+                    #         occupied_flag = True
                     
-                    if occupied_flag:
-                        grid_distance[0] = 10000
-                        grid_distance[2] = 10000
-                        grid_distance[4] = 10000
-                        grid_distance[6] = 10000
+                    # if occupied_flag:
+                    #     grid_distance[0] = 10000
+                    #     grid_distance[2] = 10000
+                    #     grid_distance[4] = 10000
+                    #     grid_distance[6] = 10000
                             
 
-                    for x in range(8):
-                        if grid_distance[x]< shortest_dist:
-                            shortest_idx = x
-                            shortest_dist = grid_distance[x]
-                    print ("Going to adjacent " + next_step_name[shortest_idx] + " grid")
+                    # for x in range(8):
+                    #     if grid_distance[x]< shortest_dist:
+                    #         shortest_idx = x
+                    #         shortest_dist = grid_distance[x]
+                    # print ("Going to adjacent " + next_step_name[shortest_idx] + " grid")
+
+                    path = dijkstras((mod_occupied_grid).astype(int), 1, 1, cf_grid, tb_grid)
+                    print(path)
+                    if not isinstance(path, bool):
+                        nextdjgrid = path[2]
+                        # nextdjgrid = np.array([nextdjgrid[1], nextdjgrid[0]])
+                        print(nextdjgrid)
+                        print(cf_grid)
 
                     nextpos = PositionVelocityStateStamped()
                     h = std_msgs.msg.Header()
@@ -126,17 +137,19 @@ class TrackTurtlebot(object):
                     # print(tb_grid)
                     # print(tb_grid + movement[shortest_idx])
                     # nextpos.state = [next_step[shortest_idx]+cf_pos, 0, 0, 0]
-                    self._next_grid = cf_grid + movement[shortest_idx]
-                    nextpos.state.x = occupancy_grid.gridToPoint((cf_grid + movement[shortest_idx]))[0]
-                    nextpos.state.y = occupancy_grid.gridToPoint((cf_grid + movement[shortest_idx]))[1]
+                    # self._next_grid = cf_grid + movement[shortest_idx]
+                    # nextpos.state.x = occupancy_grid.gridToPoint((cf_grid + movement[shortest_idx]))[0]
+                    # nextpos.state.y = occupancy_grid.gridToPoint((cf_grid + movement[shortest_idx]))[1]
+                    nextpos.state.x = occupancy_grid.gridToPoint(nextdjgrid)[0]
+                    nextpos.state.y = occupancy_grid.gridToPoint(nextdjgrid)[1]
                     nextpos.state.z = flying_height
-                    nextpos.state.x_dot = (movement[shortest_idx])[0] * self._speedScale * 1
-                    nextpos.state.y_dot = (movement[shortest_idx])[1] * self._speedScale * 1
+                    nextpos.state.x_dot = (nextdjgrid[0] - cf_grid[0])*self._speedScale#(movement[shortest_idx])[0] * self._speedScale * 1
+                    nextpos.state.y_dot = (nextdjgrid[1] - cf_grid[1])*self._speedScale#(movement[shortest_idx])[1] * self._speedScale * 1
                     nextpos.state.z_dot = 0
                     self._ref_pub.publish(nextpos)
-                    occupancy_grid.nextGrid(self._next_grid)
-                        
-                        
+                    occupancy_grid.nextGrid(nextdjgrid)
+                    
+                    
                     # print(nextpos)
                     
                     rospy.loginfo("publishing to /ref")
@@ -172,11 +185,11 @@ class TrackTurtlebot(object):
                     h.stamp = rospy.Time.now()
                     nextpos.header =  h
                     # nextpos.state = [tb_pos+offset,landing_height, 0, 0, 0]
-                    nextpos.state.x = tb_pos[0] + offset[0]
-                    nextpos.state.y = tb_pos[1] + offset[1]
+                    nextpos.state.x = tb_pos[0] + offset[0] + tb_vel[0] * self._loopTime
+                    nextpos.state.y = tb_pos[1] + offset[1] + tb_vel[1] * self._loopTime
                     nextpos.state.z = landing_height
-                    nextpos.state.x_dot = self._landingGain * tb_vel[0]#(tb_pos[0] - cf_pos[0])
-                    nextpos.state.y_dot = self._landingGain * tb_vel[1]#(tb_pos[1] - cf_pos[1])
+                    nextpos.state.x_dot = tb_vel[0]# + self._landingGain * (tb_pos[0] - cf_pos[0])
+                    nextpos.state.y_dot = tb_vel[1]# + self._landingGain * (tb_pos[1] - cf_pos[1])
                     nextpos.state.z_dot = 0
                     self._ref_pub.publish(nextpos)
                     self._track_flag = True
@@ -209,8 +222,8 @@ class TrackTurtlebot(object):
         except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
             rospy.logerr("No tf found")
         
-        except(IndexError):
-            rospy.logwarn("IndexError")
+        # except(IndexError):
+        #     rospy.logwarn("IndexError")
         
         return (self._landed, self._returnGrid)
 
@@ -223,16 +236,16 @@ class TrackTurtlebot(object):
         return True
 
     def ticked(self, inputGrid):
-        returnItem = self._history[self._counter]
-        if((returnItem == inputGrid).all()):
+        returnItem = self._history[(self._counter+1)%5]
+        if not ((returnItem == inputGrid).all()):
             self._counter = self._counter + 1
-            self._counter = self._counter%3
+            self._counter = self._counter%5
             self._history[self._counter] = inputGrid
         return returnItem
 
     def findVel(self, inputPose):
         self._poseCounter += 1
-        self._poseCounter % self._poseHistoryCount
+        self._poseCounter = self._poseCounter % self._poseHistoryCount
         self._poseHistory[self._poseCounter] = inputPose
         self._calcVel = (self._poseHistory[(self._poseCounter - 1) % self._poseHistoryCount] - inputPose)/(self._loopTime * self._poseHistoryCount)
         return self._calcVel
