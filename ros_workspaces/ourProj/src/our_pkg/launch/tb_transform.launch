@@ -7,6 +7,14 @@
   <arg name="y_min" default="-3.0" />
   <arg name="y_max" default="3.0" />
 
+  <!-- Frames of reference. -->
+  <arg name="sensor_frame" default="base_link" />
+    <arg name="fixed_frame" default="world" />
+
+  <!-- Topics. -->
+  <arg name="sensor_topic" default="/scan" />
+  <arg name="vis_topic" default="/vis/map" />
+
 <!-- TF static publisher to create a base_link frame for the turtlebot. -->
   <node pkg="tf"
         type="static_transform_publisher"
