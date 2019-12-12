@@ -185,11 +185,11 @@ class TrackTurtlebot(object):
                     h.stamp = rospy.Time.now()
                     nextpos.header =  h
                     # nextpos.state = [tb_pos+offset,landing_height, 0, 0, 0]
-                    nextpos.state.x = tb_pos[0] + offset[0]
-                    nextpos.state.y = tb_pos[1] + offset[1]
+                    nextpos.state.x = tb_pos[0] + offset[0] + tb_vel[0] * self._loopTime
+                    nextpos.state.y = tb_pos[1] + offset[1] + tb_vel[1] * self._loopTime
                     nextpos.state.z = landing_height
-                    nextpos.state.x_dot = tb_vel[0] + self._landingGain * (tb_pos[0] - cf_pos[0])
-                    nextpos.state.y_dot = tb_vel[1] + self._landingGain * (tb_pos[1] - cf_pos[1])
+                    nextpos.state.x_dot = tb_vel[0]# + self._landingGain * (tb_pos[0] - cf_pos[0])
+                    nextpos.state.y_dot = tb_vel[1]# + self._landingGain * (tb_pos[1] - cf_pos[1])
                     nextpos.state.z_dot = 0
                     self._ref_pub.publish(nextpos)
                     self._track_flag = True
