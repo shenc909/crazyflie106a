@@ -8,7 +8,7 @@ from occupancy_grid import OccupancyGrid
 
 import numpy as np
 
-def controller():
+def controller(self):
     try:
         #TODO: get correct topic to publish to
         pub = rospy.Publisher("/cmd_vel_mux/input/navi", Twist, queue_size=10)
