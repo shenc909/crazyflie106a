@@ -37,6 +37,9 @@ def controller(self):
 
         except (rospy.ROSInterruptException, tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
             rospy.loginfo("")
+            
+        except Exception as e:
+            print(e)
 
         if len(grids_traversed) == 5:
             current_angle = 0
