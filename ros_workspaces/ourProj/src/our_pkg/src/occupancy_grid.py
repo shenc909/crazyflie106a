@@ -168,11 +168,16 @@ class OccupancyGrid(object):
         xgrid = int((pos[0] - self._x_min)/self._x_res)
         ygrid = int((pos[1] - self._y_min)/self._y_res)
         return np.array([xgrid, ygrid])
+        # xg, yg = self.PointToVoxel(pos[0], pos[1])
+
+        # return np.array([xg,yg])
     
     def gridToPoint(self, grid):
-        xpos = grid[0] * self._x_res + self._x_res/2 + self._x_min
-        ypos = grid[1] * self._y_res + self._y_res/2 + self._y_min
+        xpos = grid[0] * self._x_res + self._x_min + self._x_res*0.5
+        ypos = grid[1] * self._y_res + self._y_min + self._y_res*0.5
         return np.array([xpos, ypos])
+        # xp, yp = self.VoxelCenter(grid[0], grid[1])
+        # return np.array([xp, yp])
 
     def enterPos(self, coordtb, coordcf):
         self._coordtb = coordtb

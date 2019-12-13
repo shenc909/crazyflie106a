@@ -59,13 +59,17 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
+        cap:
+          Value: false
         cf:
           Value: true
         cf/base_link:
-          Value: true
+          Value: false
         crazyflie/base_link:
           Value: false
         tb:
+          Value: false
+        tb1:
           Value: true
         world:
           Value: true
@@ -76,12 +80,16 @@ Visualization Manager:
       Show Names: true
       Tree:
         world:
+          cap:
+            {}
           cf:
             cf/base_link:
               {}
             crazyflie/base_link:
               {}
           tb:
+            {}
+          tb1:
             {}
       Update Interval: 0
       Value: true
@@ -90,7 +98,7 @@ Visualization Manager:
       Marker Topic: /vis/map
       Name: Marker
       Namespaces:
-        map: true
+        {}
       Queue Size: 100
       Value: true
   Enabled: true
@@ -136,10 +144,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6297966837882996
+      Pitch: 0.46479666233062744
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.9872283935546875
+      Yaw: 1.8972280025482178
     Saved: ~
 Window Geometry:
   Displays:

@@ -41,7 +41,7 @@ def main():
 
     # Build occupancy grid
 
-    r = rospy.Rate(20)
+    r = rospy.Rate(10)
 
     occupancy_grid = OccupancyGrid()
     occupancy_grid.Initialize()

@@ -9,7 +9,7 @@ import std_msgs.msg
 import std_srvs
 import subprocess
 import time
-from dijkstra import dijkstras
+from dijkstra2 import dijkstra
 # import tf_listener
 
 class TrackTurtlebot(object): 
@@ -21,7 +21,7 @@ class TrackTurtlebot(object):
         self._tf_listener = tf2_ros.TransformListener(self._tf_buffer)
         self._track_flag = False
         self._landed = False
-        self._speedScale = 0.05
+        self._speedScale = 0.8
         self._landingGain = 0.3
         self._LastGrid = np.array([0,0])
         self._counter = 0
@@ -34,8 +34,8 @@ class TrackTurtlebot(object):
         self._initFlag = False
         self._poseHistory = list()
         self._poseCounter = 0
-        self._poseHistoryCount = 5
-        self._loopTime = 0.05
+        self._poseHistoryCount = 3
+        self._loopTime = 0.1
 
         for a in range(self._poseHistoryCount):
             self._poseHistory.append(np.array([0,0]))
@@ -62,7 +62,7 @@ class TrackTurtlebot(object):
 
         try:
             cf_tf_pos = self._tf_buffer.lookup_transform("world", "cf", rospy.Time(0))
-            tb_tf_pos = self._tf_buffer.lookup_transform("world", "tb", rospy.Time(0))
+            tb_tf_pos = self._tf_buffer.lookup_transform("world", "tb1", rospy.Time(0))
             # print("HAPPY " + str(rospy.Time.now()))
             # occupied_grid = occupancy_grid.getOccupancy() #occupied = 1, not occupied = 0
             occupied_grid = mod_occupied_grid
@@ -76,18 +76,20 @@ class TrackTurtlebot(object):
             if not self._initFlag:
                 self._returnGrid = self.ticked(cf_grid)
                 self._next_grid = cf_grid
+                nextdjgrid = cf_grid
                 self._initFlag = True
 
             #tuning constants
             shortest_dist = 1000
             shortest_idx = 9
-            flying_height = 1.5
+            flying_height = 1.3
             landing_height = 1.1
             tb_height = 0.5
             # offset = [0.09, -0.14]
             dist = np.linalg.norm(cf_pos-tb_pos)
-            offset = [-0.15,-0.10]
-            ignoreGridDist = 0.25
+            # offset = [-0.20,-0.05]
+            offset = [0,0]
+            ignoreGridDist = 0.2
 
             movement = [(1, 1),(1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (0, 1)]
             
@@ -122,13 +124,18 @@ class TrackTurtlebot(object):
                     #         shortest_dist = grid_distance[x]
                     # print ("Going to adjacent " + next_step_name[shortest_idx] + " grid")
 
-                    path = dijkstras((mod_occupied_grid).astype(int), 1, 1, cf_grid, tb_grid)
-                    print(path)
+                    path = dijkstra((mod_occupied_grid).astype(int), cf_grid, tb_grid)
+                    # print(path)
                     if not isinstance(path, bool):
-                        nextdjgrid = path[2]
+                        try:
+                            nextdjgrid = path[2]
+                        except:
+                            nextdjgrid = tb_grid
                         # nextdjgrid = np.array([nextdjgrid[1], nextdjgrid[0]])
-                        print(nextdjgrid)
-                        print(cf_grid)
+                        # print(nextdjgrid)
+                        # print(cf_grid)
+                    else:
+                        nextdjgrid = tb_grid
 
                     nextpos = PositionVelocityStateStamped()
                     h = std_msgs.msg.Header()
@@ -143,9 +150,11 @@ class TrackTurtlebot(object):
                     nextpos.state.x = occupancy_grid.gridToPoint(nextdjgrid)[0]
                     nextpos.state.y = occupancy_grid.gridToPoint(nextdjgrid)[1]
                     nextpos.state.z = flying_height
-                    nextpos.state.x_dot = (nextdjgrid[0] - cf_grid[0])*self._speedScale#(movement[shortest_idx])[0] * self._speedScale * 1
-                    nextpos.state.y_dot = (nextdjgrid[1] - cf_grid[1])*self._speedScale#(movement[shortest_idx])[1] * self._speedScale * 1
+                    nextpos.state.x_dot = (occupancy_grid.gridToPoint(nextdjgrid)[0] - cf_pos[0])*self._speedScale#(movement[shortest_idx])[0] * self._speedScale * 1
+                    nextpos.state.y_dot = (occupancy_grid.gridToPoint(nextdjgrid)[1] - cf_pos[1])*self._speedScale#(movement[shortest_idx])[1] * self._speedScale * 1
                     nextpos.state.z_dot = 0
+                    print(occupancy_grid.gridToPoint(nextdjgrid)[0] - cf_pos[0])
+                    print(occupancy_grid.gridToPoint(nextdjgrid)[1] - cf_pos[1])
                     self._ref_pub.publish(nextpos)
                     occupancy_grid.nextGrid(nextdjgrid)
                     
@@ -165,11 +174,11 @@ class TrackTurtlebot(object):
                     h = std_msgs.msg.Header()
                     h.stamp = rospy.Time.now()
                     nextpos.header =  h
-                    nextpos.state.x = tb_pos[0] + offset[0]
-                    nextpos.state.y = tb_pos[1] + offset[1]
+                    nextpos.state.x = tb_pos[0] + offset[0] #+ tb_vel[0] * self._loopTime
+                    nextpos.state.y = tb_pos[1] + offset[1] #+ tb_vel[1] * self._loopTime
                     nextpos.state.z = landing_height
-                    nextpos.state.x_dot = self._landingGain * tb_vel[0]#(tb_pos[0] - cf_pos[0])
-                    nextpos.state.y_dot = self._landingGain * tb_vel[1]#(tb_pos[1] - cf_pos[1])
+                    nextpos.state.x_dot = 0#self._landingGain * tb_vel[0]#(tb_pos[0] - cf_pos[0])
+                    nextpos.state.y_dot = 0#self._landingGain * tb_vel[1]#(tb_pos[1] - cf_pos[1])
                     nextpos.state.z_dot = 0
                     self._ref_pub.publish(nextpos)
                     rospy.loginfo("publishing to /ref")
@@ -185,17 +194,17 @@ class TrackTurtlebot(object):
                     h.stamp = rospy.Time.now()
                     nextpos.header =  h
                     # nextpos.state = [tb_pos+offset,landing_height, 0, 0, 0]
-                    nextpos.state.x = tb_pos[0] + offset[0] + tb_vel[0] * self._loopTime
-                    nextpos.state.y = tb_pos[1] + offset[1] + tb_vel[1] * self._loopTime
+                    nextpos.state.x = tb_pos[0] + offset[0] #+ tb_vel[0] * self._loopTime
+                    nextpos.state.y = tb_pos[1] + offset[1] #+ tb_vel[1] * self._loopTime
                     nextpos.state.z = landing_height
-                    nextpos.state.x_dot = tb_vel[0]# + self._landingGain * (tb_pos[0] - cf_pos[0])
-                    nextpos.state.y_dot = tb_vel[1]# + self._landingGain * (tb_pos[1] - cf_pos[1])
+                    nextpos.state.x_dot = 0#tb_vel[0]# + self._landingGain * (tb_pos[0] - cf_pos[0])
+                    nextpos.state.y_dot = 0#tb_vel[1]# + self._landingGain * (tb_pos[1] - cf_pos[1])
                     nextpos.state.z_dot = 0
                     self._ref_pub.publish(nextpos)
                     self._track_flag = True
 
                     if self._track_flag:
-                        time.sleep(1)
+                        time.sleep(1.5)
                         rospy.loginfo("landing start")
                         cf_tf_pos = self._tf_buffer.lookup_transform("world", "cf", rospy.Time(0))
                         tb_tf_pos = self._tf_buffer.lookup_transform("world", "tb", rospy.Time(0))
