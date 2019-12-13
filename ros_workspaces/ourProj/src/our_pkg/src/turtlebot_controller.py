@@ -8,7 +8,7 @@ from occupancy_grid import OccupancyGrid
 
 import numpy as np
 
-def controller():
+def controller(self):
     try:
         #TODO: get correct topic to publish to
         pub = rospy.Publisher("/cmd_vel_mux/input/navi", Twist, queue_size=10)
@@ -37,6 +37,9 @@ def controller():
 
         except (rospy.ROSInterruptException, tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
             rospy.loginfo("")
+            
+        except Exception as e:
+            print(e)
 
         if len(grids_traversed) == 5:
             current_angle = 0

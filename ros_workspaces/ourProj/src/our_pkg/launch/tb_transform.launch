@@ -1,9 +1,45 @@
 <launch>
+  <!-- Dimensions and bounds. -->
+  <arg name="x_num" default="30" />
+  <arg name="x_min" default="-3.0" />
+  <arg name="x_max" default="3.0" />
+  <arg name="y_num" default="30" />
+  <arg name="y_min" default="-3.0" />
+  <arg name="y_max" default="3.0" />
+
+  <!-- Frames of reference. -->
+  <arg name="sensor_frame" default="base_link" />
+    <arg name="fixed_frame" default="world" />
+
+  <!-- Topics. -->
+  <arg name="sensor_topic" default="/scan" />
+  <arg name="vis_topic" default="/vis/map" />
+
 <!-- TF static publisher to create a base_link frame for the turtlebot. -->
   <node pkg="tf"
         type="static_transform_publisher"
         name="tb_base_link_publisher"
         args="0.014 0 -0.397 0 0 0 1 tb base_link 100">
+  </node>
+
+  <!-- Mapper node. -->
+  <node name="runtime"
+        pkg="our_pkg"
+        type="turtlebot_controller.py"
+        output="screen">
+
+    <param name="frames/fixed" value="$(arg fixed_frame)" />
+    <param name="frames/sensor" value="$(arg sensor_frame)" />
+
+    <param name="topics/vis" value="$(arg vis_topic)" />
+    <param name="topics/sensor" value="$(arg sensor_topic)" />
+
+    <param name="x/num" value="$(arg x_num)" />
+    <param name="x/min" value="$(arg x_min)" />
+    <param name="x/max" value="$(arg x_max)" />
+    <param name="y/num" value="$(arg y_num)" />
+    <param name="y/min" value="$(arg y_min)" />
+    <param name="y/max" value="$(arg y_max)" />
   </node>
 </launch>
 
